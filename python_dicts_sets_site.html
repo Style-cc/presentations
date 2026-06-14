@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Python Dictionaries & Sets — Complete Guide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Outfit:wght@300;400;500;600;700;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:     #f5f2eb;
+  --ink:    #0d0d0d;
+  --card:   #ffffff;
+  --muted:  #7a7165;
+  --border: #e0dbd0;
+  --dict:   #7c3aed;   /* violet — dicts */
+  --set:    #ea580c;   /* orange — sets  */
+  --teal:   #0d9488;
+  --blue:   #2563eb;
+  --rose:   #e11d48;
+  --mono: 'Space Mono', monospace;
+  --sans: 'Outfit', sans-serif;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body { font-family: var(--sans); background: var(--bg); color: var(--ink); line-height: 1.6; overflow-x: hidden; }
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+body::before {
+  content: ''; position: fixed; inset: 0; z-index: 0; pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+  opacity: .5;
+}
+
+/* ── NAV ── */
+nav {
+  position: sticky; top: 0; z-index: 100;
+  background: rgba(245,242,235,.92); backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--border);
+  padding: 0 40px; display: flex; align-items: center; justify-content: space-between; height: 60px;
+}
+.nav-brand { font-family: var(--mono); font-size: 14px; font-weight: 700; color: var(--ink); text-decoration: none; display: flex; align-items: center; gap: 8px; }
+.nav-brand .nd { color: var(--dict); }
+.nav-brand .ns { color: var(--set); }
+.nav-links { display: flex; gap: 4px; list-style: none; }
+.nav-links a { font-size: 13px; font-weight: 500; color: var(--muted); text-decoration: none; padding: 6px 12px; border-radius: 6px; transition: color .15s, background .15s; }
+.nav-links a:hover { color: var(--ink); background: var(--border); }
+.nav-tag { font-family: var(--mono); font-size: 11px; background: var(--ink); color: var(--bg); padding: 4px 10px; border-radius: 4px; letter-spacing: .05em; }
+
+/* ── HERO ── */
+.hero { position: relative; overflow: hidden; padding: 100px 40px 80px; max-width: 1100px; margin: 0 auto; }
+.hero-eyebrow { font-family: var(--mono); font-size: 12px; color: var(--dict); letter-spacing: .12em; text-transform: uppercase; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; }
+.hero-eyebrow::before { content: ''; display: block; width: 32px; height: 1px; background: var(--dict); }
+.hero-title { font-size: clamp(40px, 6vw, 80px); font-weight: 900; line-height: .95; letter-spacing: -.03em; margin-bottom: 28px; }
+.hero-title .td { background: linear-gradient(135deg,#0d0d0d 30%,var(--dict) 100%); -webkit-background-clip:text; -webkit-text-fill-color:transparent; display: block; }
+.hero-title .ts { background: linear-gradient(135deg,#444 30%,var(--set) 100%);  -webkit-background-clip:text; -webkit-text-fill-color:transparent; display: block; font-size: .65em; font-weight: 600; margin-top: 8px; }
+.hero-title .amp { color: var(--muted); font-weight: 300; font-size: .55em; }
+.hero-sub { font-size: 18px; font-weight: 400; color: var(--muted); max-width: 520px; line-height: 1.7; margin-bottom: 36px; }
+.hero-chips { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 44px; }
+.hero-chip { font-family: var(--mono); font-size: 12px; border: 1.5px solid var(--border); border-radius: 999px; padding: 6px 16px; color: var(--muted); transition: all .2s; cursor: default; }
+.hero-chip:hover { border-color: var(--ink); color: var(--ink); }
+.chip-d { color: var(--dict); border-color: rgba(124,58,237,.35); }
+.chip-s { color: var(--set);  border-color: rgba(234,88,12,.35);  }
+.hero-demo { background: var(--ink); border-radius: 14px; padding: 24px 28px; font-family: var(--mono); font-size: 13.5px; line-height: 1.9; max-width: 640px; box-shadow: 0 24px 60px rgba(0,0,0,.18); }
+.hero-demo::before { content: '● ● ●'; display: block; color: #555; font-size: 10px; letter-spacing: 4px; margin-bottom: 16px; }
+.hero-bg-text { position: absolute; right: -10px; top: 40px; font-family: var(--mono); font-size: 140px; font-weight: 700; color: var(--border); line-height: 1; pointer-events: none; user-select: none; z-index: -1; }
+
+/* ── CODE COLOURS ── */
+.c-kw  { color: #c084fc; }
+.c-str { color: #86efac; }
+.c-num { color: #fde68a; }
+.c-fn  { color: #93c5fd; }
+.c-cm  { color: #4b5563; font-style: italic; }
+.c-op  { color: #67e8f9; }
+.c-tx  { color: #e5e7eb; }
+.c-di  { color: #c084fc; }
+.c-se  { color: #fb923c; }
+
+/* ── WRAPPER ── */
+.wrapper { max-width: 1100px; margin: 0 auto; padding: 0 40px; }
+.divider { border: none; border-top: 1px solid var(--border); margin: 64px 0; }
+section { padding: 64px 0; }
+
+/* ── SECTION META ── */
+.section-meta { display: flex; align-items: center; gap: 16px; margin-bottom: 16px; }
+.section-num { font-family: var(--mono); font-size: 11px; color: var(--muted); letter-spacing: .1em; border: 1px solid var(--border); border-radius: 4px; padding: 3px 8px; }
+.section-tag { font-size: 12px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.section-title { font-size: clamp(26px, 3.8vw, 40px); font-weight: 800; letter-spacing: -.02em; line-height: 1.1; margin-bottom: 12px; }
+.section-desc  { font-size: 16px; color: var(--muted); max-width: 680px; line-height: 1.75; margin-bottom: 32px; }
+
+/* ── CODE BLOCK ── */
+.code-block { background: var(--ink); border-radius: 14px; padding: 22px 26px; font-family: var(--mono); font-size: 13px; line-height: 1.85; overflow-x: auto; margin: 18px 0; box-shadow: 0 8px 32px rgba(0,0,0,.12); }
+.code-block .line { display: flex; gap: 16px; }
+.code-block .ln { color: #374151; min-width: 18px; text-align: right; user-select: none; flex-shrink: 0; }
+.hl-d { background: rgba(124,58,237,.1);  border-left: 2px solid var(--dict); margin: 0 -26px; padding: 0 24px; display: flex; gap: 16px; }
+.hl-s { background: rgba(234,88,12,.1);   border-left: 2px solid var(--set);  margin: 0 -26px; padding: 0 24px; display: flex; gap: 16px; }
+.hl-g { background: rgba(13,148,136,.1);  border-left: 2px solid var(--teal); margin: 0 -26px; padding: 0 24px; display: flex; gap: 16px; }
+.hl-r { background: rgba(225,29,72,.1);   border-left: 2px solid var(--rose); margin: 0 -26px; padding: 0 24px; display: flex; gap: 16px; }
+
+/* ── TWO COL ── */
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+.col-head { font-family: var(--mono); font-size: 11px; color: var(--muted); letter-spacing: .1em; text-transform: uppercase; margin-bottom: 10px; }
+
+/* ── KV TABLE ── */
+.kv-wrap { background: var(--card); border: 1.5px solid var(--border); border-radius: 14px; overflow: hidden; width: 100%; }
+.kv-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.kv-table th { padding: 11px 18px; font-size: 11px; letter-spacing: .08em; text-transform: uppercase; font-family: var(--sans); font-weight: 600; border-bottom: 1px solid var(--border); text-align: left; }
+.kv-table td { padding: 10px 18px; border-bottom: 1px solid var(--border); font-family: var(--mono); }
+.kv-table tr:last-child td { border-bottom: none; }
+.kv-table tr:hover td { background: rgba(0,0,0,.015); }
+.kv-k { color: var(--dict); font-weight: 700; }
+.kv-v { color: var(--teal); }
+.kv-t { color: var(--muted); font-size: 12px; font-family: var(--sans); }
+
+/* ── RESULT ROWS ── */
+.rrows { display: flex; flex-direction: column; gap: 8px; }
+.rrow { display: flex; align-items: center; gap: 14px; background: var(--card); border: 1.5px solid var(--border); border-radius: 10px; padding: 11px 18px; font-family: var(--mono); font-size: 13px; transition: border-color .2s; }
+.rrow:hover { border-color: var(--ink); }
+.rrow .expr { min-width: 190px; font-weight: 700; }
+.rrow .arr  { color: var(--muted); }
+.rrow .res  { color: var(--teal); flex: 1; }
+.rrow .lbl  { font-size: 11px; font-family: var(--sans); font-weight: 600; border-radius: 4px; padding: 2px 8px; white-space: nowrap; }
+.ld { background: rgba(124,58,237,.1); color: var(--dict); }
+.ls { background: rgba(234,88,12,.1);  color: var(--set); }
+.lg { background: rgba(13,148,136,.1); color: var(--teal); }
+
+/* ── METHOD GRID ── */
+.method-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin: 20px 0; }
+.mcard { background: var(--card); border: 1.5px solid var(--border); border-radius: 12px; padding: 15px 18px; transition: border-color .2s, transform .15s; }
+.mcard:hover { transform: translateY(-2px); }
+.mcard.md:hover { border-color: var(--dict); }
+.mcard.ms:hover { border-color: var(--set); }
+.mname { font-family: var(--mono); font-size: 13px; font-weight: 700; margin-bottom: 4px; }
+.mname.md { color: var(--dict); }
+.mname.ms { color: var(--set);  }
+.mdesc { font-size: 13px; color: var(--ink); margin-bottom: 3px; }
+.mex   { font-family: var(--mono); font-size: 11px; color: var(--muted); }
+
+/* ── UNIQUENESS VISUAL ── */
+.uniq-vis { background: var(--card); border: 1.5px solid var(--border); border-radius: 16px; padding: 28px 32px; margin: 20px 0; }
+.uniq-title { font-family: var(--mono); font-size: 12px; color: var(--muted); margin-bottom: 20px; letter-spacing: .05em; }
+.uniq-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
+.u-item { min-width: 52px; height: 52px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-family: var(--mono); font-size: 15px; font-weight: 700; border: 1.5px solid; }
+.u-ok  { background: rgba(13,148,136,.08); border-color: var(--teal); color: var(--teal); }
+.u-dup { background: rgba(225,29,72,.06); border-color: rgba(225,29,72,.3); color: var(--rose); text-decoration: line-through; opacity: .5; }
+.uniq-arrow { text-align: center; font-size: 24px; color: var(--muted); margin: 8px 0; }
+.uniq-legend { display: flex; gap: 20px; font-size: 13px; color: var(--muted); margin-top: 4px; }
+.ul-item { display: flex; align-items: center; gap: 7px; }
+.ul-dot  { width: 10px; height: 10px; border-radius: 50%; }
+
+/* ── SET OPS GRID ── */
+.set-ops { display: grid; grid-template-columns: repeat(4,1fr); gap: 14px; margin: 20px 0; }
+.sop-card { background: var(--card); border: 1.5px solid var(--border); border-radius: 14px; padding: 20px 16px; text-align: center; transition: border-color .2s, transform .2s; }
+.sop-card:hover { border-color: var(--set); transform: translateY(-3px); }
+.sop-sym  { font-size: 30px; margin-bottom: 10px; line-height: 1; }
+.sop-op   { font-family: var(--mono); font-size: 15px; color: var(--set); font-weight: 700; margin-bottom: 6px; }
+.sop-name { font-size: 14px; font-weight: 600; margin-bottom: 6px; }
+.sop-desc { font-size: 12px; color: var(--muted); line-height: 1.5; margin-bottom: 10px; }
+.sop-ex   { font-family: var(--mono); font-size: 12px; color: var(--teal); }
+
+/* ── COMPARISON TABLE ── */
+.ct-wrap { background: var(--card); border: 1.5px solid var(--border); border-radius: 14px; overflow: hidden; margin: 20px 0; }
+.ct-table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+.ct-table th { padding: 12px 18px; text-align: left; font-size: 11px; letter-spacing: .08em; text-transform: uppercase; font-family: var(--sans); font-weight: 600; border-bottom: 1px solid var(--border); color: var(--muted); }
+.ct-table td { padding: 11px 18px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+.ct-table tr:last-child td { border-bottom: none; }
+.ct-table tr:hover td { background: rgba(0,0,0,.015); }
+.ct-prop { color: var(--muted); font-size: 13px; }
+.ct-l    { font-family: var(--mono); font-size: 13px; color: var(--blue); }
+.ct-d    { font-family: var(--mono); font-size: 13px; color: var(--dict); }
+.ct-s    { font-family: var(--mono); font-size: 13px; color: var(--set); }
+
+/* ── CALLOUT ── */
+.callout { border-left: 3px solid var(--dict); padding: 14px 20px; background: rgba(124,58,237,.05); border-radius: 0 10px 10px 0; font-size: 14px; color: var(--muted); margin: 20px 0; line-height: 1.7; }
+.callout.c-set  { border-color: var(--set); background: rgba(234,88,12,.05); }
+.callout strong { color: var(--ink); }
+code { font-family: var(--mono); font-size: .88em; background: rgba(124,58,237,.08); color: var(--dict); padding: 2px 6px; border-radius: 4px; }
+code.cs { background: rgba(234,88,12,.08); color: var(--set); }
+
+/* ── CHEATSHEET ── */
+.cheatsheet { background: var(--ink); border-radius: 20px; padding: 48px; margin: 64px 0; position: relative; overflow: hidden; }
+.cheatsheet::before { content: '{ }'; position: absolute; right: 48px; top: 50%; transform: translateY(-50%); font-family: var(--mono); font-size: 130px; font-weight: 700; color: rgba(255,255,255,.04); line-height: 1; pointer-events: none; }
+.cs-title { font-size: 22px; font-weight: 800; color: #fff; margin-bottom: 28px; letter-spacing: -.01em; }
+.cs-grid  { display: grid; grid-template-columns: repeat(3,1fr); gap: 16px; }
+.cs-box   { background: rgba(255,255,255,.05); border-radius: 10px; padding: 16px 18px; }
+.cs-label { font-family: var(--mono); font-size: 12px; margin-bottom: 8px; font-weight: 700; }
+.cs-code  { font-family: var(--mono); font-size: 12.5px; color: #86efac; line-height: 1.8; }
+.cs-note  { font-size: 12px; color: #6b7280; margin-top: 6px; }
+
+/* ── FOOTER ── */
+footer { border-top: 1px solid var(--border); padding: 40px; display: flex; align-items: center; justify-content: space-between; max-width: 1100px; margin: 0 auto; font-size: 13px; color: var(--muted); }
+footer .mono { font-family: var(--mono); color: var(--ink); }
+
+/* ── ANIMATIONS ── */
+@keyframes fadeUp { from { opacity:0; transform:translateY(20px);} to { opacity:1; transform:translateY(0);} }
+.hero-eyebrow { animation: fadeUp .5s ease both; }
+.hero-title   { animation: fadeUp .5s .1s ease both; }
+.hero-sub     { animation: fadeUp .5s .2s ease both; }
+.hero-chips   { animation: fadeUp .5s .3s ease both; }
+.hero-demo    { animation: fadeUp .5s .4s ease both; }
+
+/* ── RESPONSIVE ── */
+@media (max-width: 768px) {
+  .set-ops { grid-template-columns: 1fr 1fr; }
+  .method-grid { grid-template-columns: 1fr; }
+  .two-col { grid-template-columns: 1fr; }
+  .cs-grid { grid-template-columns: 1fr 1fr; }
+  .nav-links { display: none; }
+  nav, .wrapper { padding-left: 20px; padding-right: 20px; }
+  .hero { padding: 60px 20px 40px; }
+  .hero-bg-text { display: none; }
+}
+@media (max-width: 480px) {
+  .set-ops { grid-template-columns: 1fr; }
+  .cs-grid { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<!-- ── NAV ── -->
+<nav>
+  <a class="nav-brand" href="#"><span class="nd">{ dict }</span> &amp; <span class="ns">{ set }</span></a>
+  <ul class="nav-links">
+    <li><a href="#dict-intro">What is a Dict</a></li>
+    <li><a href="#dict-access">Access &amp; Modify</a></li>
+    <li><a href="#dict-methods">Dict Methods</a></li>
+    <li><a href="#set-intro">What is a Set</a></li>
+    <li><a href="#set-ops">Set Operations</a></li>
+    <li><a href="#set-methods">Set Methods</a></li>
+    <li><a href="#practice">Practical Use</a></li>
+    <li><a href="#compare">Comparison</a></li>
+  </ul>
+  <span class="nav-tag">Lesson 06</span>
+</nav>
+
+<!-- ── HERO ── -->
+<div class="hero">
+  <div class="hero-bg-text">{ }</div>
+  <div class="hero-eyebrow">Python · Data Structures</div>
+  <h1 class="hero-title">
+    <span class="td">Dictionaries</span>
+    <span class="ts"><span class="amp">&amp;</span> Sets</span>
+  </h1>
+  <p class="hero-sub">Dictionaries map keys to values for instant lookup. Sets store only unique elements. Both are essential tools in real-world Python code.</p>
+  <div class="hero-chips">
+    <span class="hero-chip chip-d">{ key: value }</span>
+    <span class="hero-chip chip-d">O(1) lookup</span>
+    <span class="hero-chip chip-d">unique keys</span>
+    <span class="hero-chip chip-s">{ unique values }</span>
+    <span class="hero-chip chip-s">| &amp; - ^</span>
+    <span class="hero-chip chip-s">no order</span>
+  </div>
+  <div class="hero-demo">
+    <span class="c-cm"># dict — key → value mapping</span><br>
+    <span class="c-tx">person </span><span class="c-op">= </span><span class="c-tx">{</span><span class="c-str">"name"</span><span class="c-op">: </span><span class="c-str">"Alice"</span><span class="c-tx">, </span><span class="c-str">"age"</span><span class="c-op">: </span><span class="c-num">25</span><span class="c-tx">}</span><br>
+    <span class="c-fn">print</span><span class="c-tx">(person[</span><span class="c-str">"name"</span><span class="c-tx">])   </span><span class="c-cm"># "Alice"</span><br>
+    <br>
+    <span class="c-cm"># set — unique values only</span><br>
+    <span class="c-tx">nums </span><span class="c-op">= </span><span class="c-fn">set</span><span class="c-tx">([</span><span class="c-num">1</span><span class="c-tx">, </span><span class="c-num">2</span><span class="c-tx">, </span><span class="c-num">2</span><span class="c-tx">, </span><span class="c-num">3</span><span class="c-tx">, </span><span class="c-num">3</span><span class="c-tx">])</span><br>
+    <span class="c-fn">print</span><span class="c-tx">(nums)           </span><span class="c-cm"># {1, 2, 3}</span><br>
+    <br>
+    <span class="c-cm"># set operations</span><br>
+    <span class="c-tx">{</span><span class="c-num">1</span><span class="c-tx">,</span><span class="c-num">2</span><span class="c-tx">} </span><span class="c-op">|</span><span class="c-tx"> {</span><span class="c-num">2</span><span class="c-tx">,</span><span class="c-num">3</span><span class="c-tx">}  </span><span class="c-cm"># {1, 2, 3}  — union</span>
+  </div>
+</div>
+
+<!-- ── CONTENT ── -->
+<div class="wrapper">
+  <hr class="divider">
+
+  <!-- ════ DICT INTRO ════ -->
+  <section id="dict-intro">
+    <div class="section-meta"><span class="section-num">01</span><span class="section-tag">Dictionaries</span></div>
+    <h2 class="section-title" style="color:var(--dict)">What is a Dictionary?</h2>
+    <p class="section-desc">A dictionary stores pairs of <strong style="color:var(--dict)">key → value</strong>. Lookup by key is instant — O(1). Keys must be unique and immutable.</p>
+
+    <div class="two-col">
+      <div>
+        <div class="col-head">Creating a dictionary</div>
+        <div class="code-block">
+          <div class="line"><span class="ln">1</span><span><span class="c-cm"># Literal syntax</span></span></div>
+          <div class="hl-d"><span class="ln">2</span><span><span class="c-tx">person </span><span class="c-op">=</span><span class="c-tx"> {</span></span></div>
+          <div class="hl-d"><span class="ln">3</span><span><span class="c-tx">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="c-str">"name"</span><span class="c-op">:</span><span class="c-tx"> </span><span class="c-str">"Alice"</span><span class="c-tx">,</span></span></div>
+          <div class="hl-d"><span class="ln">4</span><span><span class="c-tx">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="c-str">"age"</span><span class="c-op">:</span><span class="c-tx"> </span><span class="c-num">25</span><span class="c-tx">,</span></span></div>
+          <div class="hl-d"><span class="ln">5</span><span><span class="c-tx">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="c-str">"city"</span><span class="c-op">:</span><span class="c-tx"> </span><span class="c-str">"Baku"</span></span></div>
+          <div class="hl-d"><span class="ln">6</span><span><span class="c-tx">}</span></span></div>
+          <div class="line"><span class="ln">7</span><span>&nbsp;</span></div>
+          <div class="line"><span class="ln">8</span><span><span class="c-cm"># dict() constructor</span></span></div>
+          <div class="line"><span class="ln">9</span><span><span class="c-tx">d </span><span class="c-op">=</span><span class="c-tx"> </span><span class="c-fn">dict</span><span class="c-tx">(x</span><span class="c-op">=</span><span class="c-num">1</span><span class="c-tx">, y</span><span class="c-op">=</span><span class="c-num">2</span><span class="c-tx">)</span></span></div>
+          <div class="line"><span class="ln">10</span><span>&nbsp;</span></div>
+          <div class="line"><span class="ln">11</span><span><span class="c-cm"># Empty dictionary</span></span></div>
+          <div class="line"><span class="ln">12</span><span><span class="c-tx">empty </span><span class="c-op">=</span><span class="c-tx"> {}</span></span></div>
+          <div class="line"><span class="ln">13</span><span>&nbsp;</span></div>
+          <div class="line"><span class="ln">14</span><span><span class="c-cm"># Dict comprehension</span></span></div>
+          <div class="line"><span class="ln">15</span><span><span class="c-tx">sq </span><span class="c-op">=</span><span class="c-tx"> {x</span><span class="c-op">:</span><span class="c-tx"> x</span><span class="c-op">**</span><span class="c-num">2</span><span class="c-tx"> </span><span class="c-kw">for</span><span class="c-tx"> x </span><span class="c-kw">in</span><span class="c-tx"> </span><span class="c-fn">range</span><span class="c-tx">(</span><span class="c-num">4</span><span class="c-tx">)}</span></span></div>
+          <div class="line"><span class="ln">16</span><span><span class="c-cm"># {0:0, 1:1, 2:4, 3:9}</span></span></div>
+        </div>
+      </div>
+      <div>
+        <div class="col-head">Key → Value structure</div>
+        <div class="kv-wrap">
+          <table class="kv-table">
+            <thead><tr>
+              <th style="color:var(--dict)">Key</th>
+              <th style="color:var(--teal)">Value</th>
+              <th>Types</th>
+            </tr></thead>
+            <tbody>
+              <tr><td class="kv-k">"name"</td><td class="kv-v">"Alice"</td><td class="kv-t">str → str</td></tr>
+              <tr><td class="kv-k">"age"</td><td class="kv-v">25</td><td class="kv-t">str → int</td></tr>
+              <tr><td class="kv-k">"city"</td><td class="kv-v">"Baku"</td><td class="kv-t">str → str</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="callout" style="margin-top:16px">
+          <strong>Valid keys:</strong> strings, integers, tuples — any immutable type. <strong>Values</strong> can be absolutely anything, including other dicts or lists.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <hr class="divider">
+
+  <!-- ════ DICT ACCESS ════ -->
+  <section id="dict-access">
+    <div class="section-meta"><span class="section-num">02</span><span class="section-tag">Access &amp; Modify</span></div>
+    <h2 class="section-title">Accessing &amp; Modifying <span style="color:var(--dict)">Dicts</span></h2>
+    <p class="section-desc">Read values by key using square brackets or <code>.get()</code>. Add, update, and delete entries after creation.</p>
+
+    <div class="two-col">
+      <div>
+        <div class="code-block">
+          <div class="line"><span class="ln">1</span><span><span class="c-tx">p </span><span class="c-op">=</span><span class="c-tx"> {</span><span class="c-str">"name"</span><span class="c-op">:</span><span class="c-str">"Ali"</span><span class="c-tx">, </span><span class="c-str">"age"</span><span class="c-op">:</span><span class="c-num">20</span><span class="c-tx">}</span></span></div>
+          <div class="line"><span class="ln">2</span><span>&nbsp;</span></div>
+          <div class="line"><span class="ln">3</span><span><span class="c-cm"># Read a value</span></span></div>
+          <div class="hl-d"><span class="ln">4</span><span><span class="c-tx">p[</span><span class="c-str">"name"</span><span class="c-tx">]          </span><span class="c-cm"># "Ali"</span></span></div>
+          <div class="hl-d"><span class="ln">5</span><span><span class="c-tx">p.get(</span><span class="c-str">"age"</span><span class="c-tx">)       </span><span class="c-cm"># 20</span></span></div>
+          <div class="hl-d"><span class="ln">6</span><span><span class="c-tx">p.get(</span><span class="c-str">"email"</span><span class="c-tx">, </span><span class="c-str">"N/A"</span><span class="c-tx">) </span><span class="c-cm"># "N/A" (safe!)</span></span></div>
+          <div class="line"><span class="ln">7</span><span>&nbsp;</span></div>
+          <div class="line"><span class="ln">8</span><span><span class="c-cm"># Add / update</span></span></div>
+          <div class="hl-g"><span class="ln">9</span><span><span class="c-tx">p[</span><span class="c-str">"city"</span><span class="c-tx">] </span><span class="c-op">=</span><span class="c-tx"> </span><span class="c-str">"Baku"</span>   <span class="c-cm"># add new key</span></span></div>
+          <div class="hl-g"><span class="ln">10</span><span><span class="c-tx">p[</span><span class="c-str">"age"</span><span class="c-tx">] </span><span class="c-op">=</span><span class="c-tx"> </span><span class="c-num">21</span>       <span class="c-cm"># update value</span></span></div>
+          <div class="line"><span class="ln">11</span><span>&nbsp;</span></div>
+          <div class="line"><span class="ln">12</span><span><span class="c-cm"># Delete</span></span></div>
+          <div class="hl-r"><span class="ln">13</span><span><span class="c-kw">del</span><span class="c-tx"> p[</span><span class="c-str">"city"</span><span class="c-tx">]</span></span></div>
+          <div class="hl-r"><span class="ln">14</span><span><span class="c-tx">p.pop(</span><span class="c-str">"age"</span><span class="c-tx">)      </span><span class="c-cm"># removes &amp; returns 21</span></span></div>
+        </div>
+      </div>
+      <div>
+        <div class="col-head">Iterating over a dict</div>
+        <div class="code-block">
+          <div class="line"><span class="ln">1</span><span><span class="c-cm"># Keys only (default)</span></span></div>
+          <div class="hl-d"><span class="ln">2</span><span><span class="c-kw">for</span><span class="c-tx"> k </span><span class="c-kw">in</span><span class="c-tx"> p.keys(): </span><span class="c-fn">print</span><span class="c-tx">(k)</span></span></div>
+          <div class="line"><span class="ln">3</span><span>&nbsp;</span></div>
+          <div class="line"><span class="ln">4</span><span><span class="c-cm"># Values only</span></span></div>
+          <div class="hl-d"><span class="ln">5</span><span><span class="c-kw">for</span><span class="c-tx"> v </span><span class="c-kw">in</span><span class="c-tx"> p.values(): </span><span class="c-fn">print</span><span class="c-tx">(v)</span></span></div>
+          <div class="line"><span class="ln">6</span><span>&nbsp;</span></div>
+          <div class="line"><span class="ln">7</span><span><span class="c-cm"># Key + value pairs — most common</span></span></div>
+          <div class="hl-d"><span class="ln">8</span><span><span class="c-kw">for</span><span class="c-tx"> k, v </span><span class="c-kw">in</span><span class="c-tx"> p.items():</span></span></div>
+          <div class="hl-d"><span class="ln">9</span><span><span class="c-tx">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="c-fn">print</span><span class="c-tx">(k, </span><span class="c-str">"→"</span><span class="c-tx">, v)</span></span></div>
+          <div class="line"><span class="ln">10</span><span>&nbsp;</span></div>
+          <div class="line"><span class="ln">11</span><span><span class="c-cm"># Check if key exists</span></span></div>
+          <div class="line"><span class="ln">12</span><span><span class="c-str">"name"</span><span class="c-tx"> </span><span class="c-kw">in</span><span class="c-tx"> p    </span><span class="c-cm"># True</span></span></div>
+          <div class="line"><span class="ln">13</span><span><span class="c-str">"email"</span><span class="c-tx"> </span><span class="c-kw">not in</span><span class="c-tx"> p </span><span class="c-cm"># True</span></span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <hr class="divider">
+
+  <!-- ════ DICT METHODS ════ -->
+  <section id="dict-methods">
+    <div class="section-meta"><span class="section-num">03</span><span class="section-tag">Dict Methods</span></div>
+    <h2 class="section-title">Dictionary <span style="color:var(--dict)">Methods</span></h2>
+    <p class="section-desc">Dictionaries come with a rich set of built-in methods for reading, updating, and transforming data.</p>
+
+    <div class="method-grid">
+      <div class="mcard md"><div class="mname md">.keys()</div><div class="mdesc">All keys as a view</div><div class="mex">p.keys() → dict_keys(["name","age"])</div></div>
+      <div class="mcard md"><div class="mname md">.values()</div><div class="mdesc">All values as a view</div><div class="mex">p.values() → dict_values(["Ali", 20])</div></div>
+      <div class="mcard md"><div class="mname md">.items()</div><div class="mdesc">All (key, value) pairs</div><div class="mex">for k, v in p.items()</div></div>
+      <div class="mcard md"><div class="mname md">.get(k, default)</div><div class="mdesc">Value for k, default if missing</div><div class="mex">p.get("x", 0) → 0</div></div>
+      <div class="mcard md"><div class="mname md">.update(d)</div><div class="mdesc">Merge another dict in</div><div class="mex">p.update({"city": "Baku"})</div></div>
+      <div class="mcard md"><div class="mname md">.pop(k)</div><div class="mdesc">Remove key, return value</div><div class="mex">p.pop("age") → 20</div></div>
+      <div class="mcard md"><div class="mname md">.setdefault(k, v)</div><div class="mdesc">Return value; if missing — set it</div><div class="mex">p.setdefault("score", 0)</div></div>
+      <div class="mcard md"><div class="mname md">.clear()</div><div class="mdesc">Remove all entries</div><div class="mex">p.clear() → {}</div></div>
+      <div class="mcard md"><div class="mname md">.copy()</div><div class="mdesc">Shallow copy of the dict</div><div class="mex">p2 = p.copy()</div></div>
+      <div class="mcard md"><div class="mname md">dict comprehension</div><div class="mdesc">Build dict from expression</div><div class="mex">{k: v*2 for k,v in d.items()}</div></div>
+    </div>
+  </section>
+
+  <hr class="divider">
+
+  <!-- ════ SET INTRO ════ -->
+  <section id="set-intro">
+    <div class="section-meta"><span class="section-num">04</span><span class="section-tag">Sets</span></div>
+    <h2 class="section-title" style="color:var(--set)">What is a Set?</h2>
+    <p class="section-desc">A set stores only <strong style="color:var(--set)">unique</strong> elements with no guaranteed order. Perfect for removing duplicates and fast membership testing.</p>
+
+    <div class="two-col">
+      <div>
+        <div class="col-head">Creating a set</div>
+        <div class="code-block">
+          <div class="line"><span class="ln">1</span><span><span class="c-cm"># Set literal</span></span></div>
+          <div class="hl-s"><span class="ln">2</span><span><span class="c-tx">colors </span><span class="c-op">=</span><span class="c-tx"> {</span><span class="c-str">"red"</span><span class="c-tx">, </span><span class="c-str">"green"</span><span class="c-tx">, </span><span class="c-str">"blue"</span><span class="c-tx">}</span></span></div>
+          <div class="line"><span class="ln">3</span><span>&nbsp;</span></div>
+          <div class="line"><span class="ln">4</span><span><span class="c-cm"># From list — removes duplicates!</span></span></div>
+          <div class="hl-s"><span class="ln">5</span><span><span class="c-tx">s </span><span class="c-op">=</span><span class="c-tx"> </span><span class="c-fn">set</span><span class="c-tx">([</span><span class="c-num">1</span><span class="c-tx">, </span><span class="c-num">2</span><span class="c-tx">, </span><span class="c-num">2</span><span class="c-tx">, </span><span class="c-num">3</span><span class="c-tx">, </span><span class="c-num">3</span><span class="c-tx">])</span></span></div>
+          <div class="hl-s"><span class="ln">6</span><span><span class="c-cm"># → {1, 2, 3}</span></span></div>
+          <div class="line"><span class="ln">7</span><span>&nbsp;</span></div>
+          <div class="line"><span class="ln">8</span><span><span class="c-cm"># Empty set — MUST use set(), not {}</span></span></div>
+          <div class="hl-r"><span class="ln">9</span><span><span class="c-tx">empty </span><span class="c-op">=</span><span class="c-tx"> </span><span class="c-fn">set</span><span class="c-tx">()  </span><span class="c-cm"># {} creates an empty DICT!</span></span></div>
+        </div>
+        <div class="callout c-set" style="margin-top:14px">
+          <strong>Remember:</strong> <code class="cs">{}</code> creates an empty <em>dictionary</em>, not a set. Always use <code class="cs">set()</code> for an empty set.
+        </div>
+      </div>
+      <div>
+        <div class="col-head">Uniqueness visualised</div>
+        <div class="uniq-vis">
+          <div class="uniq-title">Input: [1, 2, 2, 3, 3, 3, 4]</div>
+          <div class="uniq-row">
+            <div class="u-item u-ok">1</div>
+            <div class="u-item u-ok">2</div>
+            <div class="u-item u-dup">2</div>
+            <div class="u-item u-ok">3</div>
+            <div class="u-item u-dup">3</div>
+            <div class="u-item u-dup">3</div>
+            <div class="u-item u-ok">4</div>
+          </div>
+          <div class="uniq-arrow">↓</div>
+          <div class="uniq-title">Result: {1, 2, 3, 4}</div>
+          <div class="uniq-row">
+            <div class="u-item u-ok">1</div>
+            <div class="u-item u-ok">2</div>
+            <div class="u-item u-ok">3</div>
+            <div class="u-item u-ok">4</div>
+          </div>
+          <div class="uniq-legend">
+            <div class="ul-item"><div class="ul-dot" style="background:var(--teal)"></div>kept — unique</div>
+            <div class="ul-item"><div class="ul-dot" style="background:var(--rose)"></div>removed — duplicate</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <hr class="divider">
+
+  <!-- ════ SET OPERATIONS ════ -->
+  <section id="set-ops">
+    <div class="section-meta"><span class="section-num">05</span><span class="section-tag">Set Operations</span></div>
+    <h2 class="section-title">Set <span style="color:var(--set)">Operations</span></h2>
+    <p class="section-desc">Sets support mathematical operations: union, intersection, difference, and symmetric difference — all with clean operator syntax.</p>
+
+    <div class="code-block">
+      <div class="line"><span class="ln">1</span><span><span class="c-tx">A </span><span class="c-op">=</span><span class="c-tx"> {</span><span class="c-num">1</span><span class="c-tx">, </span><span class="c-num">2</span><span class="c-tx">, </span><span class="c-num">3</span><span class="c-tx">, </span><span class="c-num">4</span><span class="c-tx">} &nbsp;&nbsp; B </span><span class="c-op">=</span><span class="c-tx"> {</span><span class="c-num">3</span><span class="c-tx">, </span><span class="c-num">4</span><span class="c-tx">, </span><span class="c-num">5</span><span class="c-tx">, </span><span class="c-num">6</span><span class="c-tx">}</span></span></div>
+    </div>
+
+    <div class="set-ops">
+      <div class="sop-card">
+        <div class="sop-sym">🔵🟠</div>
+        <div class="sop-op">A | B</div>
+        <div class="sop-name">Union</div>
+        <div class="sop-desc">All elements from both sets</div>
+        <div class="sop-ex">{1, 2, 3, 4, 5, 6}</div>
+      </div>
+      <div class="sop-card">
+        <div class="sop-sym">🔵∩🟠</div>
+        <div class="sop-op">A &amp; B</div>
+        <div class="sop-name">Intersection</div>
+        <div class="sop-desc">Only elements in both</div>
+        <div class="sop-ex">{3, 4}</div>
+      </div>
+      <div class="sop-card">
+        <div class="sop-sym">🔵➖🟠</div>
+        <div class="sop-op">A - B</div>
+        <div class="sop-name">Difference</div>
+        <div class="sop-desc">In A but not in B</div>
+        <div class="sop-ex">{1, 2}</div>
+      </div>
+      <div class="sop-card">
+        <div class="sop-sym">🔵△🟠</div>
+        <div class="sop-op">A ^ B</div>
+        <div class="sop-name">Symmetric Diff</div>
+        <div class="sop-desc">In one, but not both</div>
+        <div class="sop-ex">{1, 2, 5, 6}</div>
+      </div>
+    </div>
+
+    <div class="code-block">
+      <div class="hl-s"><span class="ln">1</span><span><span class="c-tx">A </span><span class="c-op">|</span><span class="c-tx"> B  </span><span class="c-op">==</span><span class="c-tx"> A.union(B)                  </span><span class="c-cm"># union</span></span></div>
+      <div class="hl-s"><span class="ln">2</span><span><span class="c-tx">A </span><span class="c-op">&amp;</span><span class="c-tx"> B  </span><span class="c-op">==</span><span class="c-tx"> A.intersection(B)          </span><span class="c-cm"># intersection</span></span></div>
+      <div class="hl-s"><span class="ln">3</span><span><span class="c-tx">A </span><span class="c-op">-</span><span class="c-tx"> B  </span><span class="c-op">==</span><span class="c-tx"> A.difference(B)            </span><span class="c-cm"># difference</span></span></div>
+      <div class="hl-s"><span class="ln">4</span><span><span class="c-tx">A </span><span class="c-op">^</span><span class="c-tx"> B  </span><span class="c-op">==</span><span class="c-tx"> A.symmetric_difference(B)  </span><span class="c-cm"># sym. diff</span></span></div>
+    </div>
+  </section>
+
+  <hr class="divider">
+
+  <!-- ════ SET METHODS ════ -->
+  <section id="set-methods">
+    <div class="section-meta"><span class="section-num">06</span><span class="section-tag">Set Methods</span></div>
+    <h2 class="section-title">Set <span style="color:var(--set)">Methods</span></h2>
+    <p class="section-desc">Methods for adding, removing elements, and testing relationships between sets.</p>
+
+    <div class="method-grid">
+      <div class="mcard ms"><div class="mname ms">.add(x)</div><div class="mdesc">Add element x</div><div class="mex">s.add(5) → {1,2,3,5}</div></div>
+      <div class="mcard ms"><div class="mname ms">.remove(x)</div><div class="mdesc">Remove x (raises error if missing)</div><div class="mex">s.remove(2)</div></div>
+      <div class="mcard ms"><div class="mname ms">.discard(x)</div><div class="mdesc">Remove x (safe — no error)</div><div class="mex">s.discard(99)  # no error</div></div>
+      <div class="mcard ms"><div class="mname ms">.pop()</div><div class="mdesc">Remove &amp; return an arbitrary element</div><div class="mex">s.pop()  # random item</div></div>
+      <div class="mcard ms"><div class="mname ms">.union(s2)</div><div class="mdesc">Return union of two sets</div><div class="mex">s.union({4,5}) == s | {4,5}</div></div>
+      <div class="mcard ms"><div class="mname ms">.intersection(s2)</div><div class="mdesc">Return intersection</div><div class="mex">s.intersection({1,9})</div></div>
+      <div class="mcard ms"><div class="mname ms">.difference(s2)</div><div class="mdesc">Return difference</div><div class="mex">s.difference({1}) == s - {1}</div></div>
+      <div class="mcard ms"><div class="mname ms">.issubset(s2)</div><div class="mdesc">True if s ⊆ s2</div><div class="mex">{1,2}.issubset({1,2,3}) → True</div></div>
+      <div class="mcard ms"><div class="mname ms">.issuperset(s2)</div><div class="mdesc">True if s ⊇ s2</div><div class="mex">{1,2,3}.issuperset({1,2})</div></div>
+      <div class="mcard ms"><div class="mname ms">.isdisjoint(s2)</div><div class="mdesc">True if no common elements</div><div class="mex">{1,2}.isdisjoint({3,4}) → True</div></div>
+    </div>
+  </section>
+
+  <hr class="divider">
+
+  <!-- ════ PRACTICAL ════ -->
+  <section id="practice">
+    <div class="section-meta"><span class="section-num">07</span><span class="section-tag">Practical Use</span></div>
+    <h2 class="section-title">Real-World <span style="color:var(--teal)">Examples</span></h2>
+    <p class="section-desc">Common patterns where dicts and sets are the best tool for the job.</p>
+
+    <div class="two-col">
+      <div>
+        <div class="col-head" style="color:var(--dict)">Dictionaries in practice</div>
+        <div class="code-block">
+          <div class="line"><span class="ln">1</span><span><span class="c-cm"># Word frequency counter</span></span></div>
+          <div class="hl-d"><span class="ln">2</span><span><span class="c-tx">freq </span><span class="c-op">=</span><span class="c-tx"> {}</span></span></div>
+          <div class="hl-d"><span class="ln">3</span><span><span class="c-kw">for</span><span class="c-tx"> w </span><span class="c-kw">in</span><span class="c-tx"> words:</span></span></div>
+          <div class="hl-d"><span class="ln">4</span><span><span class="c-tx">&nbsp;&nbsp;&nbsp;&nbsp;freq[w] </span><span class="c-op">=</span><span class="c-tx"> freq.get(w, </span><span class="c-num">0</span><span class="c-tx">) </span><span class="c-op">+</span><span class="c-tx"> </span><span class="c-num">1</span></span></div>
+          <div class="line"><span class="ln">5</span><span>&nbsp;</span></div>
+          <div class="line"><span class="ln">6</span><span><span class="c-cm"># Cache / memoisation</span></span></div>
+          <div class="hl-d"><span class="ln">7</span><span><span class="c-tx">cache </span><span class="c-op">=</span><span class="c-tx"> {}</span></span></div>
+          <div class="hl-d"><span class="ln">8</span><span><span class="c-kw">if</span><span class="c-tx"> n </span><span class="c-kw">not in</span><span class="c-tx"> cache:</span></span></div>
+          <div class="hl-d"><span class="ln">9</span><span><span class="c-tx">&nbsp;&nbsp;&nbsp;&nbsp;cache[n] </span><span class="c-op">=</span><span class="c-tx"> compute(n)</span></span></div>
+          <div class="line"><span class="ln">10</span><span>&nbsp;</span></div>
+          <div class="line"><span class="ln">11</span><span><span class="c-cm"># Group items by category</span></span></div>
+          <div class="hl-d"><span class="ln">12</span><span><span class="c-tx">groups </span><span class="c-op">=</span><span class="c-tx"> {}</span></span></div>
+          <div class="hl-d"><span class="ln">13</span><span><span class="c-kw">for</span><span class="c-tx"> item </span><span class="c-kw">in</span><span class="c-tx"> data:</span></span></div>
+          <div class="hl-d"><span class="ln">14</span><span><span class="c-tx">&nbsp;&nbsp;&nbsp;&nbsp;groups.setdefault(item.cat, []).append(item)</span></span></div>
+        </div>
+      </div>
+      <div>
+        <div class="col-head" style="color:var(--set)">Sets in practice</div>
+        <div class="code-block">
+          <div class="line"><span class="ln">1</span><span><span class="c-cm"># Remove duplicates from a list</span></span></div>
+          <div class="hl-s"><span class="ln">2</span><span><span class="c-tx">unique </span><span class="c-op">=</span><span class="c-tx"> </span><span class="c-fn">list</span><span class="c-tx">(</span><span class="c-fn">set</span><span class="c-tx">(lst))</span></span></div>
+          <div class="line"><span class="ln">3</span><span>&nbsp;</span></div>
+          <div class="line"><span class="ln">4</span><span><span class="c-cm"># Fast membership check (O(1))</span></span></div>
+          <div class="hl-s"><span class="ln">5</span><span><span class="c-tx">banned </span><span class="c-op">=</span><span class="c-tx"> {</span><span class="c-str">"spam"</span><span class="c-tx">, </span><span class="c-str">"ads"</span><span class="c-tx">, </span><span class="c-str">"bot"</span><span class="c-tx">}</span></span></div>
+          <div class="hl-s"><span class="ln">6</span><span><span class="c-kw">if</span><span class="c-tx"> word </span><span class="c-kw">in</span><span class="c-tx"> banned: skip()</span></span></div>
+          <div class="line"><span class="ln">7</span><span>&nbsp;</span></div>
+          <div class="line"><span class="ln">8</span><span><span class="c-cm"># Common friends</span></span></div>
+          <div class="hl-s"><span class="ln">9</span><span><span class="c-tx">common </span><span class="c-op">=</span><span class="c-tx"> friends_A </span><span class="c-op">&amp;</span><span class="c-tx"> friends_B</span></span></div>
+          <div class="line"><span class="ln">10</span><span>&nbsp;</span></div>
+          <div class="line"><span class="ln">11</span><span><span class="c-cm"># Unique tags across all posts</span></span></div>
+          <div class="hl-s"><span class="ln">12</span><span><span class="c-tx">all_tags </span><span class="c-op">=</span><span class="c-tx"> </span><span class="c-fn">set</span><span class="c-tx">()</span></span></div>
+          <div class="hl-s"><span class="ln">13</span><span><span class="c-kw">for</span><span class="c-tx"> post </span><span class="c-kw">in</span><span class="c-tx"> posts:</span></span></div>
+          <div class="hl-s"><span class="ln">14</span><span><span class="c-tx">&nbsp;&nbsp;&nbsp;&nbsp;all_tags </span><span class="c-op">|=</span><span class="c-tx"> </span><span class="c-fn">set</span><span class="c-tx">(post.tags)</span></span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <hr class="divider">
+
+  <!-- ════ COMPARISON ════ -->
+  <section id="compare">
+    <div class="section-meta"><span class="section-num">08</span><span class="section-tag">Comparison</span></div>
+    <h2 class="section-title"><code style="color:var(--blue);font-size:.8em;background:rgba(37,99,235,.08)">list</code> vs <code style="color:var(--dict);font-size:.8em;background:rgba(124,58,237,.08)">dict</code> vs <code style="color:var(--set);font-size:.8em;background:rgba(234,88,12,.08)">set</code></h2>
+    <p class="section-desc">Choosing the right collection type affects both readability and performance.</p>
+
+    <div class="ct-wrap">
+      <table class="ct-table">
+        <thead>
+          <tr>
+            <th>Property</th>
+            <th style="color:var(--blue)">list [ ]</th>
+            <th style="color:var(--dict)">dict { k: v }</th>
+            <th style="color:var(--set)">set { }</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td class="ct-prop">Order</td><td class="ct-l">✓ preserved</td><td class="ct-d">✓ insertion order (3.7+)</td><td class="ct-s">✗ not guaranteed</td></tr>
+          <tr><td class="ct-prop">Duplicates</td><td class="ct-l">✓ allowed</td><td class="ct-d">keys must be unique</td><td class="ct-s">✗ not allowed</td></tr>
+          <tr><td class="ct-prop">Access</td><td class="ct-l">by index [i]</td><td class="ct-d">by key [k]</td><td class="ct-s">iteration only</td></tr>
+          <tr><td class="ct-prop">Search speed</td><td class="ct-l">O(n) — slow</td><td class="ct-d">O(1) — instant</td><td class="ct-s">O(1) — instant</td></tr>
+          <tr><td class="ct-prop">Mutable</td><td class="ct-l">✓ yes</td><td class="ct-d">✓ yes</td><td class="ct-s">✓ yes</td></tr>
+          <tr><td class="ct-prop">Best for</td><td class="ct-l">ordered sequences</td><td class="ct-d">key-value mapping</td><td class="ct-s">uniqueness &amp; fast lookup</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+</div>
+
+<!-- ── CHEATSHEET ── -->
+<div class="wrapper">
+  <div class="cheatsheet">
+    <div class="cs-title">Quick Reference Cheatsheet</div>
+    <div class="cs-grid">
+      <div class="cs-box">
+        <div class="cs-label" style="color:#c084fc">Create a dict</div>
+        <div class="cs-code">d = {"k": "v"}<br>d = dict(k="v")<br>d = {k: v for k,v in pairs}<br>d = {}  # empty dict</div>
+      </div>
+      <div class="cs-box">
+        <div class="cs-label" style="color:#c084fc">Read &amp; modify</div>
+        <div class="cs-code">d["key"]<br>d.get("key", default)<br>d["key"] = value<br>d.pop("key")<br>del d["key"]</div>
+      </div>
+      <div class="cs-box">
+        <div class="cs-label" style="color:#c084fc">Iterate</div>
+        <div class="cs-code">for k in d.keys():<br>for v in d.values():<br>for k, v in d.items():<br>"key" in d  # O(1)</div>
+      </div>
+      <div class="cs-box">
+        <div class="cs-label" style="color:#fb923c">Create a set</div>
+        <div class="cs-code">s = {1, 2, 3}<br>s = set([1,2,2,3])  # dedupe<br>s = set()  # empty (not {}!)</div>
+        <div class="cs-note">{} creates a dict, not a set!</div>
+      </div>
+      <div class="cs-box">
+        <div class="cs-label" style="color:#fb923c">Set operations</div>
+        <div class="cs-code">A | B   # union<br>A &amp; B   # intersection<br>A - B   # difference<br>A ^ B   # symmetric diff</div>
+      </div>
+      <div class="cs-box">
+        <div class="cs-label" style="color:#86efac">When to use what</div>
+        <div class="cs-code">list  → order matters<br>dict  → key-value lookup<br>set   → unique items,<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;fast membership</div>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <div>Python Dicts &amp; Sets — Lesson 06 of the Python course</div>
+    <div class="mono">next → Functions</div>
+  </footer>
+</div>
+
+</body>
+</html>

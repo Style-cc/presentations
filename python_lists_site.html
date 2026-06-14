@@ -1,0 +1,970 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Python Lists — Complete Guide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Outfit:wght@300;400;500;600;700;900&display=swap" rel="stylesheet">
+<style>
+/* ─────────────────────────────────────────────
+   TOKENS
+───────────────────────────────────────────── */
+:root {
+  --bg:        #f5f2eb;
+  --ink:       #0d0d0d;
+  --card:      #ffffff;
+  --muted:     #7a7165;
+  --border:    #e0dbd0;
+  --accent:    #1a1a2e;
+  --blue:      #2563eb;
+  --teal:      #0d9488;
+  --amber:     #d97706;
+  --rose:      #e11d48;
+  --violet:    #7c3aed;
+  --mono: 'Space Mono', monospace;
+  --sans: 'Outfit', sans-serif;
+}
+
+/* ─────────────────────────────────────────────
+   RESET & BASE
+───────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; font-size: 16px; }
+body {
+  font-family: var(--sans);
+  background: var(--bg);
+  color: var(--ink);
+  line-height: 1.6;
+  overflow-x: hidden;
+}
+
+/* ─────────────────────────────────────────────
+   SCROLLBAR
+───────────────────────────────────────────── */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+/* ─────────────────────────────────────────────
+   GRAIN OVERLAY
+───────────────────────────────────────────── */
+body::before {
+  content: '';
+  position: fixed; inset: 0; z-index: 0; pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+  opacity: .5;
+}
+
+/* ─────────────────────────────────────────────
+   NAV
+───────────────────────────────────────────── */
+nav {
+  position: sticky; top: 0; z-index: 100;
+  background: rgba(245,242,235,.92);
+  backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--border);
+  padding: 0 40px;
+  display: flex; align-items: center; justify-content: space-between;
+  height: 60px;
+}
+.nav-brand {
+  font-family: var(--mono);
+  font-size: 14px; font-weight: 700;
+  color: var(--ink);
+  text-decoration: none;
+  display: flex; align-items: center; gap: 8px;
+}
+.nav-brand span { color: var(--blue); }
+.nav-links {
+  display: flex; gap: 4px; list-style: none;
+}
+.nav-links a {
+  font-size: 13px; font-weight: 500; color: var(--muted);
+  text-decoration: none; padding: 6px 12px; border-radius: 6px;
+  transition: color .15s, background .15s;
+}
+.nav-links a:hover { color: var(--ink); background: var(--border); }
+.nav-tag {
+  font-family: var(--mono); font-size: 11px;
+  background: var(--ink); color: var(--bg);
+  padding: 4px 10px; border-radius: 4px;
+  letter-spacing: .05em;
+}
+
+/* ─────────────────────────────────────────────
+   HERO
+───────────────────────────────────────────── */
+.hero {
+  position: relative; overflow: hidden;
+  padding: 100px 40px 80px;
+  max-width: 1100px; margin: 0 auto;
+}
+.hero-eyebrow {
+  font-family: var(--mono); font-size: 12px;
+  color: var(--blue); letter-spacing: .12em; text-transform: uppercase;
+  margin-bottom: 20px;
+  display: flex; align-items: center; gap: 10px;
+}
+.hero-eyebrow::before {
+  content: ''; display: block;
+  width: 32px; height: 1px; background: var(--blue);
+}
+.hero-title {
+  font-size: clamp(52px, 7vw, 88px);
+  font-weight: 900; line-height: .95;
+  letter-spacing: -.03em;
+  margin-bottom: 28px;
+}
+.hero-title .bracket { color: var(--blue); }
+.hero-title .dim { color: var(--muted); font-weight: 300; }
+.hero-sub {
+  font-size: 18px; font-weight: 400; color: var(--muted);
+  max-width: 520px; line-height: 1.7; margin-bottom: 40px;
+}
+.hero-chips {
+  display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 48px;
+}
+.hero-chip {
+  font-family: var(--mono); font-size: 12px;
+  border: 1.5px solid var(--border); border-radius: 999px;
+  padding: 6px 16px; color: var(--muted);
+  transition: all .2s;
+}
+.hero-chip:hover { border-color: var(--ink); color: var(--ink); }
+.hero-demo {
+  position: relative;
+  background: var(--ink);
+  border-radius: 14px;
+  padding: 24px 28px;
+  font-family: var(--mono); font-size: 14px; line-height: 1.9;
+  max-width: 620px;
+  box-shadow: 0 24px 60px rgba(0,0,0,.18);
+}
+.hero-demo::before {
+  content: '● ● ●';
+  display: block; color: #555; font-size: 10px; letter-spacing: 4px;
+  margin-bottom: 16px;
+}
+.c-kw  { color: #c084fc; }
+.c-str { color: #86efac; }
+.c-num { color: #fde68a; }
+.c-fn  { color: #93c5fd; }
+.c-cm  { color: #4b5563; font-style: italic; }
+.c-op  { color: #67e8f9; }
+.c-tx  { color: #e5e7eb; }
+.hero-bg-text {
+  position: absolute; right: -20px; top: 40px;
+  font-family: var(--mono); font-size: 160px; font-weight: 700;
+  color: var(--border); line-height: 1; pointer-events: none;
+  user-select: none; z-index: -1;
+}
+
+/* ─────────────────────────────────────────────
+   SECTION WRAPPER
+───────────────────────────────────────────── */
+.wrapper {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 40px;
+}
+
+/* ─────────────────────────────────────────────
+   DIVIDER
+───────────────────────────────────────────── */
+.divider {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 64px 0;
+}
+
+/* ─────────────────────────────────────────────
+   SECTION LABEL
+───────────────────────────────────────────── */
+.section-meta {
+  display: flex; align-items: center; gap: 16px;
+  margin-bottom: 16px;
+}
+.section-num {
+  font-family: var(--mono); font-size: 11px;
+  color: var(--muted); letter-spacing: .1em;
+  border: 1px solid var(--border); border-radius: 4px;
+  padding: 3px 8px;
+}
+.section-tag {
+  font-size: 12px; font-weight: 600; letter-spacing: .08em;
+  text-transform: uppercase; color: var(--muted);
+}
+.section-title {
+  font-size: clamp(28px, 4vw, 40px);
+  font-weight: 800; letter-spacing: -.02em;
+  line-height: 1.1; margin-bottom: 12px;
+}
+.section-desc {
+  font-size: 16px; color: var(--muted);
+  max-width: 680px; line-height: 1.75;
+  margin-bottom: 36px;
+}
+
+/* ─────────────────────────────────────────────
+   PROPERTY CARDS (What is a List)
+───────────────────────────────────────────── */
+.props-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 36px;
+}
+.prop-card {
+  background: var(--card);
+  border: 1.5px solid var(--border);
+  border-radius: 16px;
+  padding: 24px 20px;
+  transition: transform .2s, box-shadow .2s, border-color .2s;
+}
+.prop-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 32px rgba(0,0,0,.08);
+  border-color: var(--ink);
+}
+.prop-icon { font-size: 28px; margin-bottom: 12px; }
+.prop-title { font-size: 15px; font-weight: 700; margin-bottom: 6px; }
+.prop-desc { font-size: 13px; color: var(--muted); line-height: 1.6; }
+
+/* ─────────────────────────────────────────────
+   CODE BLOCKS
+───────────────────────────────────────────── */
+.code-block {
+  background: var(--ink);
+  border-radius: 14px;
+  padding: 24px 28px;
+  font-family: var(--mono);
+  font-size: 13.5px;
+  line-height: 1.85;
+  overflow-x: auto;
+  margin: 20px 0;
+  box-shadow: 0 8px 32px rgba(0,0,0,.12);
+}
+.code-block .line { display: flex; gap: 16px; }
+.code-block .ln { color: #374151; min-width: 18px; text-align: right; user-select: none; flex-shrink: 0; }
+
+/* ─────────────────────────────────────────────
+   TWO COL
+───────────────────────────────────────────── */
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+.col-head { font-family: var(--mono); font-size: 11px; color: var(--muted); letter-spacing: .1em; text-transform: uppercase; margin-bottom: 10px; }
+
+/* ─────────────────────────────────────────────
+   INDEX VISUALISER
+───────────────────────────────────────────── */
+.index-vis {
+  background: var(--card);
+  border: 1.5px solid var(--border);
+  border-radius: 16px;
+  padding: 32px;
+  margin: 20px 0;
+}
+.index-vis-title { font-family: var(--mono); font-size: 12px; color: var(--muted); margin-bottom: 20px; }
+.idx-row { display: flex; gap: 0; justify-content: flex-start; margin: 8px 0; }
+.idx-cell { text-align: center; }
+.idx-pos { font-family: var(--mono); font-size: 11px; color: var(--blue); padding: 0 0 6px; }
+.idx-val {
+  background: var(--ink); color: #e5e7eb;
+  font-family: var(--mono); font-size: 15px; font-weight: 700;
+  padding: 14px 20px; border-right: 1px solid #2a2a2a;
+  min-width: 72px;
+}
+.idx-cell:first-child .idx-val { border-radius: 10px 0 0 10px; }
+.idx-cell:last-child  .idx-val { border-radius: 0 10px 10px 0; border-right: none; }
+.idx-neg { font-family: var(--mono); font-size: 11px; color: var(--rose); padding: 6px 0 0; }
+
+/* ─────────────────────────────────────────────
+   SLICES TABLE
+───────────────────────────────────────────── */
+.slice-rows { display: flex; flex-direction: column; gap: 8px; }
+.slice-row {
+  display: flex; align-items: center; gap: 16px;
+  background: var(--card); border: 1.5px solid var(--border);
+  border-radius: 10px; padding: 12px 18px;
+  font-family: var(--mono); font-size: 13px;
+  transition: border-color .2s;
+}
+.slice-row:hover { border-color: var(--ink); }
+.slice-row .expr { color: var(--blue); min-width: 120px; font-weight: 700; }
+.slice-row .arr  { color: var(--muted); }
+.slice-row .res  { color: var(--teal); flex: 1; }
+.slice-row .lbl  {
+  font-size: 11px; font-family: var(--sans); font-weight: 600;
+  background: #f0f0f0; color: var(--muted);
+  border-radius: 4px; padding: 2px 8px; white-space: nowrap;
+}
+
+/* ─────────────────────────────────────────────
+   METHODS GRID
+───────────────────────────────────────────── */
+.methods-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin: 20px 0;
+}
+.method-card {
+  background: var(--card);
+  border: 1.5px solid var(--border);
+  border-radius: 12px;
+  padding: 16px 18px;
+  transition: border-color .2s, transform .15s;
+}
+.method-card:hover { border-color: var(--blue); transform: translateY(-2px); }
+.method-name {
+  font-family: var(--mono); font-size: 13px;
+  color: var(--blue); font-weight: 700; margin-bottom: 4px;
+}
+.method-desc { font-size: 13px; color: var(--ink); margin-bottom: 4px; }
+.method-ex   { font-family: var(--mono); font-size: 11px; color: var(--muted); }
+
+/* ─────────────────────────────────────────────
+   COMPREHENSION
+───────────────────────────────────────────── */
+.comp-syntax {
+  background: var(--ink);
+  border-radius: 14px;
+  padding: 26px 32px;
+  font-family: var(--mono);
+  font-size: 17px;
+  text-align: center;
+  letter-spacing: .02em;
+  margin-bottom: 24px;
+}
+.cs-br   { color: var(--c-num); color: #fde68a; font-size: 20px; }
+.cs-expr { color: #86efac; }
+.cs-kw   { color: #c084fc; }
+.cs-item { color: #93c5fd; }
+.cs-iter { color: #fde68a; }
+.cs-cond { color: #f9a8d4; }
+.cs-dim  { color: #4b5563; }
+.comp-labels {
+  display: flex; gap: 28px; flex-wrap: wrap; margin-bottom: 28px;
+}
+.comp-label { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--muted); }
+.comp-dot   { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+
+/* ─────────────────────────────────────────────
+   BUILTINS
+───────────────────────────────────────────── */
+.builtins-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 10px;
+  margin: 20px 0;
+}
+.bi-card {
+  background: var(--card);
+  border: 1.5px solid var(--border);
+  border-radius: 12px;
+  padding: 16px 14px;
+  text-align: center;
+  transition: border-color .2s, transform .15s;
+}
+.bi-card:hover { border-color: var(--teal); transform: translateY(-3px); }
+.bi-fn   { font-family: var(--mono); font-size: 13px; color: var(--teal); font-weight: 700; margin-bottom: 6px; }
+.bi-desc { font-size: 12px; color: var(--muted); line-height: 1.5; }
+.bi-ex   { font-family: var(--mono); font-size: 10.5px; color: var(--border); margin-top: 6px; }
+
+/* ─────────────────────────────────────────────
+   CHEATSHEET BANNER
+───────────────────────────────────────────── */
+.cheatsheet {
+  background: var(--ink);
+  border-radius: 20px;
+  padding: 48px;
+  margin: 64px 0;
+  position: relative; overflow: hidden;
+}
+.cheatsheet::before {
+  content: '[ ]';
+  position: absolute; right: 40px; top: 50%; transform: translateY(-50%);
+  font-family: var(--mono); font-size: 120px; font-weight: 700;
+  color: rgba(255,255,255,.04); line-height: 1; pointer-events: none;
+}
+.cs-title { font-size: 22px; font-weight: 800; color: #fff; margin-bottom: 28px; letter-spacing: -.01em; }
+.cs-grid  { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+.cs-item-box { background: rgba(255,255,255,.05); border-radius: 10px; padding: 14px 16px; }
+.cs-item-label { font-family: var(--mono); font-size: 12px; color: #93c5fd; margin-bottom: 6px; font-weight: 700; }
+.cs-item-code  { font-family: var(--mono); font-size: 12.5px; color: #86efac; line-height: 1.7; }
+.cs-item-note  { font-size: 12px; color: #6b7280; margin-top: 4px; }
+
+/* ─────────────────────────────────────────────
+   FOOTER
+───────────────────────────────────────────── */
+footer {
+  border-top: 1px solid var(--border);
+  padding: 40px;
+  display: flex; align-items: center; justify-content: space-between;
+  max-width: 1100px; margin: 0 auto;
+  font-size: 13px; color: var(--muted);
+}
+footer .mono { font-family: var(--mono); color: var(--ink); }
+
+/* ─────────────────────────────────────────────
+   ANIMATIONS
+───────────────────────────────────────────── */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.hero-eyebrow  { animation: fadeUp .5s ease both; }
+.hero-title    { animation: fadeUp .5s .1s ease both; }
+.hero-sub      { animation: fadeUp .5s .2s ease both; }
+.hero-chips    { animation: fadeUp .5s .3s ease both; }
+.hero-demo     { animation: fadeUp .5s .4s ease both; }
+
+/* ─────────────────────────────────────────────
+   INLINE CODE
+───────────────────────────────────────────── */
+code {
+  font-family: var(--mono);
+  font-size: .88em;
+  background: rgba(37,99,235,.08);
+  color: var(--blue);
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+/* ─────────────────────────────────────────────
+   CALLOUT
+───────────────────────────────────────────── */
+.callout {
+  border-left: 3px solid var(--blue);
+  padding: 14px 20px;
+  background: rgba(37,99,235,.05);
+  border-radius: 0 10px 10px 0;
+  font-size: 14px; color: var(--muted);
+  margin: 20px 0;
+  line-height: 1.7;
+}
+.callout strong { color: var(--ink); }
+
+/* ─────────────────────────────────────────────
+   SECTION PADDING
+───────────────────────────────────────────── */
+section { padding: 64px 0; }
+
+/* ─────────────────────────────────────────────
+   RESPONSIVE
+───────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .props-grid    { grid-template-columns: 1fr 1fr; }
+  .methods-grid  { grid-template-columns: 1fr 1fr; }
+  .builtins-grid { grid-template-columns: repeat(2, 1fr); }
+  .two-col       { grid-template-columns: 1fr; }
+  .cs-grid       { grid-template-columns: 1fr 1fr; }
+  .nav-links     { display: none; }
+  nav            { padding: 0 20px; }
+  .hero          { padding: 60px 20px 40px; }
+  .wrapper       { padding: 0 20px; }
+  .hero-bg-text  { display: none; }
+}
+@media (max-width: 480px) {
+  .props-grid    { grid-template-columns: 1fr; }
+  .builtins-grid { grid-template-columns: 1fr 1fr; }
+  .cs-grid       { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════
+     NAV
+═══════════════════════════════════════ -->
+<nav>
+  <a class="nav-brand" href="#"><span>[</span> Lists <span>]</span> in Python</a>
+  <ul class="nav-links">
+    <li><a href="#what">What is a List</a></li>
+    <li><a href="#create">Creating</a></li>
+    <li><a href="#indexing">Indexing</a></li>
+    <li><a href="#methods">Methods</a></li>
+    <li><a href="#comprehension">Comprehension</a></li>
+    <li><a href="#builtins">Built-ins</a></li>
+  </ul>
+  <span class="nav-tag">Lesson 04</span>
+</nav>
+
+<!-- ═══════════════════════════════════════
+     HERO
+═══════════════════════════════════════ -->
+<div class="hero">
+  <div class="hero-bg-text">[ ]</div>
+  <div class="hero-eyebrow">Python · Data Structures</div>
+  <h1 class="hero-title">
+    Python<br>
+    <span class="bracket">[</span> Lists <span class="bracket">]</span>
+  </h1>
+  <p class="hero-sub">A complete, hands-on guide to Python's most versatile built-in data structure — ordered, mutable, and ready for anything.</p>
+  <div class="hero-chips">
+    <span class="hero-chip">ordered</span>
+    <span class="hero-chip">mutable</span>
+    <span class="hero-chip">heterogeneous</span>
+    <span class="hero-chip">dynamic</span>
+    <span class="hero-chip">iterable</span>
+    <span class="hero-chip">zero-indexed</span>
+  </div>
+  <div class="hero-demo">
+    <span class="c-cm"># a list can hold any mix of types</span><br>
+    <span class="c-tx">my_list </span><span class="c-op">= </span><span class="c-tx">[</span><span class="c-num">42</span><span class="c-tx">, </span><span class="c-str">"hello"</span><span class="c-tx">, </span><span class="c-num">3.14</span><span class="c-tx">, </span><span class="c-kw">True</span><span class="c-tx">, [</span><span class="c-num">1</span><span class="c-tx">, </span><span class="c-num">2</span><span class="c-tx">]]</span><br>
+    <br>
+    <span class="c-cm"># access by index</span><br>
+    <span class="c-fn">print</span><span class="c-tx">(my_list[</span><span class="c-num">1</span><span class="c-tx">])   </span><span class="c-cm"># "hello"</span><br>
+    <span class="c-fn">print</span><span class="c-tx">(my_list[</span><span class="c-op">-</span><span class="c-num">1</span><span class="c-tx">])  </span><span class="c-cm"># [1, 2]  ← last item</span><br>
+    <br>
+    <span class="c-cm"># lists grow and shrink</span><br>
+    <span class="c-tx">my_list.append(</span><span class="c-str">"new"</span><span class="c-tx">)</span>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════
+     WHAT IS A LIST
+═══════════════════════════════════════ -->
+<div class="wrapper">
+  <hr class="divider">
+  <section id="what">
+    <div class="section-meta">
+      <span class="section-num">01</span>
+      <span class="section-tag">Fundamentals</span>
+    </div>
+    <h2 class="section-title">What is a List?</h2>
+    <p class="section-desc">A list stores a collection of items in a specific order. Unlike strings, lists are mutable — you can change their contents after creation.</p>
+
+    <div class="props-grid">
+      <div class="prop-card">
+        <div class="prop-icon">📋</div>
+        <div class="prop-title">Ordered</div>
+        <div class="prop-desc">Items preserve their insertion order. <code>lst[0]</code> always refers to the first item added.</div>
+      </div>
+      <div class="prop-card">
+        <div class="prop-icon">✏️</div>
+        <div class="prop-title">Mutable</div>
+        <div class="prop-desc">You can add, remove, or change elements after the list is created. No need to rebuild it.</div>
+      </div>
+      <div class="prop-card">
+        <div class="prop-icon">🎨</div>
+        <div class="prop-title">Heterogeneous</div>
+        <div class="prop-desc">A single list can hold integers, strings, floats, booleans, even other lists — all at once.</div>
+      </div>
+      <div class="prop-card">
+        <div class="prop-icon">↔️</div>
+        <div class="prop-title">Dynamic</div>
+        <div class="prop-desc">The size changes automatically as you add or remove items. No fixed capacity to worry about.</div>
+      </div>
+    </div>
+
+    <div class="callout">
+      <strong>Zero-indexed:</strong> Python counts from <code>0</code>, not <code>1</code>. The first element is always at index <code>0</code>, the last at index <code>-1</code>.
+    </div>
+  </section>
+
+  <hr class="divider">
+
+  <!-- ═══ CREATING ═══ -->
+  <section id="create">
+    <div class="section-meta">
+      <span class="section-num">02</span>
+      <span class="section-tag">Creation</span>
+    </div>
+    <h2 class="section-title">Creating Lists</h2>
+    <p class="section-desc">Python offers several syntaxes for creating lists — from a simple literal to generator expressions.</p>
+
+    <div class="two-col">
+      <div>
+        <div class="col-head">All creation methods</div>
+        <div class="code-block">
+          <div class="line"><span class="ln">1</span><span><span class="c-cm"># 1. List literal — most common</span></span></div>
+          <div class="line"><span class="ln">2</span><span><span class="c-tx">fruits </span><span class="c-op">=</span><span class="c-tx"> [</span><span class="c-str">"apple"</span><span class="c-tx">, </span><span class="c-str">"banana"</span><span class="c-tx">, </span><span class="c-str">"cherry"</span><span class="c-tx">]</span></span></div>
+          <div class="line"><span class="ln">3</span><span>&nbsp;</span></div>
+          <div class="line"><span class="ln">4</span><span><span class="c-cm"># 2. list() constructor</span></span></div>
+          <div class="line"><span class="ln">5</span><span><span class="c-tx">nums </span><span class="c-op">=</span><span class="c-tx"> </span><span class="c-fn">list</span><span class="c-tx">(</span><span class="c-fn">range</span><span class="c-tx">(</span><span class="c-num">1</span><span class="c-tx">, </span><span class="c-num">6</span><span class="c-tx">))  </span><span class="c-cm"># [1, 2, 3, 4, 5]</span></span></div>
+          <div class="line"><span class="ln">6</span><span>&nbsp;</span></div>
+          <div class="line"><span class="ln">7</span><span><span class="c-cm"># 3. Empty list</span></span></div>
+          <div class="line"><span class="ln">8</span><span><span class="c-tx">empty </span><span class="c-op">=</span><span class="c-tx"> []</span></span></div>
+          <div class="line"><span class="ln">9</span><span>&nbsp;</span></div>
+          <div class="line"><span class="ln">10</span><span><span class="c-cm"># 4. List comprehension (covered later)</span></span></div>
+          <div class="line"><span class="ln">11</span><span><span class="c-tx">squares </span><span class="c-op">=</span><span class="c-tx"> [x</span><span class="c-op">**</span><span class="c-num">2</span><span class="c-tx"> </span><span class="c-kw">for</span><span class="c-tx"> x </span><span class="c-kw">in</span><span class="c-tx"> </span><span class="c-fn">range</span><span class="c-tx">(</span><span class="c-num">5</span><span class="c-tx">)]</span></span></div>
+          <div class="line"><span class="ln">12</span><span>&nbsp;</span></div>
+          <div class="line"><span class="ln">13</span><span><span class="c-cm"># 5. Nested lists (2D matrix)</span></span></div>
+          <div class="line"><span class="ln">14</span><span><span class="c-tx">matrix </span><span class="c-op">=</span><span class="c-tx"> [[</span><span class="c-num">1</span><span class="c-tx">, </span><span class="c-num">2</span><span class="c-tx">], [</span><span class="c-num">3</span><span class="c-tx">, </span><span class="c-num">4</span><span class="c-tx">], [</span><span class="c-num">5</span><span class="c-tx">, </span><span class="c-num">6</span><span class="c-tx">]]</span></span></div>
+        </div>
+      </div>
+      <div>
+        <div class="col-head">Type checking</div>
+        <div class="code-block">
+          <div class="line"><span class="ln">1</span><span><span class="c-tx">lst </span><span class="c-op">=</span><span class="c-tx"> [</span><span class="c-num">1</span><span class="c-tx">, </span><span class="c-str">"two"</span><span class="c-tx">, </span><span class="c-num">3.0</span><span class="c-tx">]</span></span></div>
+          <div class="line"><span class="ln">2</span><span>&nbsp;</span></div>
+          <div class="line"><span class="ln">3</span><span><span class="c-fn">type</span><span class="c-tx">(lst)       </span><span class="c-cm"># &lt;class 'list'&gt;</span></span></div>
+          <div class="line"><span class="ln">4</span><span><span class="c-fn">len</span><span class="c-tx">(lst)        </span><span class="c-cm"># 3</span></span></div>
+          <div class="line"><span class="ln">5</span><span><span class="c-fn">isinstance</span><span class="c-tx">(lst, </span><span class="c-fn">list</span><span class="c-tx">)  </span><span class="c-cm"># True</span></span></div>
+          <div class="line"><span class="ln">6</span><span>&nbsp;</span></div>
+          <div class="line"><span class="ln">7</span><span><span class="c-cm"># Check if a value is in the list</span></span></div>
+          <div class="line"><span class="ln">8</span><span><span class="c-str">"two"</span><span class="c-tx"> </span><span class="c-kw">in</span><span class="c-tx"> lst    </span><span class="c-cm"># True</span></span></div>
+          <div class="line"><span class="ln">9</span><span><span class="c-str">"four"</span><span class="c-tx"> </span><span class="c-kw">not in</span><span class="c-tx"> lst </span><span class="c-cm"># True</span></span></div>
+          <div class="line"><span class="ln">10</span><span>&nbsp;</span></div>
+          <div class="line"><span class="ln">11</span><span><span class="c-cm"># Concatenate two lists</span></span></div>
+          <div class="line"><span class="ln">12</span><span><span class="c-tx">[</span><span class="c-num">1</span><span class="c-tx">, </span><span class="c-num">2</span><span class="c-tx">] </span><span class="c-op">+</span><span class="c-tx"> [</span><span class="c-num">3</span><span class="c-tx">, </span><span class="c-num">4</span><span class="c-tx">]  </span><span class="c-cm"># [1, 2, 3, 4]</span></span></div>
+          <div class="line"><span class="ln">13</span><span><span class="c-tx">[</span><span class="c-num">0</span><span class="c-tx">] </span><span class="c-op">*</span><span class="c-tx"> </span><span class="c-num">4</span><span class="c-tx">          </span><span class="c-cm"># [0, 0, 0, 0]</span></span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <hr class="divider">
+
+  <!-- ═══ INDEXING & SLICING ═══ -->
+  <section id="indexing">
+    <div class="section-meta">
+      <span class="section-num">03</span>
+      <span class="section-tag">Access</span>
+    </div>
+    <h2 class="section-title">Indexing &amp; Slicing</h2>
+    <p class="section-desc">Access any element by its position. Use negative indices to count from the end. Slice with <code>[start:stop:step]</code> to extract sublists.</p>
+
+    <div class="index-vis">
+      <div class="index-vis-title">lst = ['a', 'b', 'c', 'd', 'e']</div>
+      <div class="idx-row">
+        <div class="idx-cell">
+          <div class="idx-pos">[0]</div>
+          <div class="idx-val">'a'</div>
+          <div class="idx-neg">[-5]</div>
+        </div>
+        <div class="idx-cell">
+          <div class="idx-pos">[1]</div>
+          <div class="idx-val">'b'</div>
+          <div class="idx-neg">[-4]</div>
+        </div>
+        <div class="idx-cell">
+          <div class="idx-pos">[2]</div>
+          <div class="idx-val">'c'</div>
+          <div class="idx-neg">[-3]</div>
+        </div>
+        <div class="idx-cell">
+          <div class="idx-pos">[3]</div>
+          <div class="idx-val">'d'</div>
+          <div class="idx-neg">[-2]</div>
+        </div>
+        <div class="idx-cell">
+          <div class="idx-pos">[4]</div>
+          <div class="idx-val">'e'</div>
+          <div class="idx-neg">[-1]</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="two-col" style="margin-top: 24px;">
+      <div>
+        <div class="col-head">Single element access</div>
+        <div class="slice-rows">
+          <div class="slice-row"><span class="expr">lst[0]</span><span class="arr">→</span><span class="res">'a'</span><span class="lbl">first</span></div>
+          <div class="slice-row"><span class="expr">lst[-1]</span><span class="arr">→</span><span class="res">'e'</span><span class="lbl">last</span></div>
+          <div class="slice-row"><span class="expr">lst[2]</span><span class="arr">→</span><span class="res">'c'</span><span class="lbl">by index</span></div>
+          <div class="slice-row"><span class="expr">lst[-2]</span><span class="arr">→</span><span class="res">'d'</span><span class="lbl">2nd from end</span></div>
+        </div>
+      </div>
+      <div>
+        <div class="col-head">Slicing [start : stop : step]</div>
+        <div class="slice-rows">
+          <div class="slice-row"><span class="expr">lst[1:3]</span><span class="arr">→</span><span class="res">['b', 'c']</span><span class="lbl">slice</span></div>
+          <div class="slice-row"><span class="expr">lst[:3]</span><span class="arr">→</span><span class="res">['a', 'b', 'c']</span><span class="lbl">from start</span></div>
+          <div class="slice-row"><span class="expr">lst[2:]</span><span class="arr">→</span><span class="res">['c', 'd', 'e']</span><span class="lbl">to end</span></div>
+          <div class="slice-row"><span class="expr">lst[::2]</span><span class="arr">→</span><span class="res">['a', 'c', 'e']</span><span class="lbl">every 2nd</span></div>
+          <div class="slice-row"><span class="expr">lst[::-1]</span><span class="arr">→</span><span class="res">['e','d','c','b','a']</span><span class="lbl">reversed</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <hr class="divider">
+
+  <!-- ═══ METHODS ═══ -->
+  <section id="methods">
+    <div class="section-meta">
+      <span class="section-num">04</span>
+      <span class="section-tag">Methods</span>
+    </div>
+    <h2 class="section-title">List Methods</h2>
+    <p class="section-desc">Methods are called with dot notation and mostly modify the list <em>in place</em> — meaning they change the original list and return <code>None</code>.</p>
+
+    <div class="methods-grid">
+      <div class="method-card">
+        <div class="method-name">.append(x)</div>
+        <div class="method-desc">Add x to the end</div>
+        <div class="method-ex">lst.append(5)</div>
+      </div>
+      <div class="method-card">
+        <div class="method-name">.extend(iterable)</div>
+        <div class="method-desc">Add all items from iterable</div>
+        <div class="method-ex">lst.extend([6, 7, 8])</div>
+      </div>
+      <div class="method-card">
+        <div class="method-name">.insert(i, x)</div>
+        <div class="method-desc">Insert x before position i</div>
+        <div class="method-ex">lst.insert(0, "first")</div>
+      </div>
+      <div class="method-card">
+        <div class="method-name">.remove(x)</div>
+        <div class="method-desc">Remove first occurrence of x</div>
+        <div class="method-ex">lst.remove("apple")</div>
+      </div>
+      <div class="method-card">
+        <div class="method-name">.pop(i)</div>
+        <div class="method-desc">Remove &amp; return element at i</div>
+        <div class="method-ex">lst.pop()  # last item</div>
+      </div>
+      <div class="method-card">
+        <div class="method-name">.sort()</div>
+        <div class="method-desc">Sort the list in place</div>
+        <div class="method-ex">lst.sort(reverse=True)</div>
+      </div>
+      <div class="method-card">
+        <div class="method-name">.reverse()</div>
+        <div class="method-desc">Reverse the list in place</div>
+        <div class="method-ex">lst.reverse()</div>
+      </div>
+      <div class="method-card">
+        <div class="method-name">.index(x)</div>
+        <div class="method-desc">Return index of first x</div>
+        <div class="method-ex">lst.index("banana")</div>
+      </div>
+      <div class="method-card">
+        <div class="method-name">.count(x)</div>
+        <div class="method-desc">Count occurrences of x</div>
+        <div class="method-ex">lst.count(3)</div>
+      </div>
+      <div class="method-card">
+        <div class="method-name">.clear()</div>
+        <div class="method-desc">Remove all elements</div>
+        <div class="method-ex">lst.clear()  # → []</div>
+      </div>
+      <div class="method-card">
+        <div class="method-name">.copy()</div>
+        <div class="method-desc">Return a shallow copy</div>
+        <div class="method-ex">new = lst.copy()</div>
+      </div>
+      <div class="method-card">
+        <div class="method-name">del lst[i]</div>
+        <div class="method-desc">Delete element at index i</div>
+        <div class="method-ex">del lst[0]</div>
+      </div>
+    </div>
+
+    <div class="code-block" style="margin-top:8px">
+      <div class="line"><span class="ln">1</span><span><span class="c-tx">lst </span><span class="c-op">=</span><span class="c-tx"> [</span><span class="c-num">3</span><span class="c-tx">, </span><span class="c-num">1</span><span class="c-tx">, </span><span class="c-num">4</span><span class="c-tx">, </span><span class="c-num">1</span><span class="c-tx">, </span><span class="c-num">5</span><span class="c-tx">, </span><span class="c-num">9</span><span class="c-tx">]</span></span></div>
+      <div class="line"><span class="ln">2</span><span><span class="c-tx">lst.append(</span><span class="c-num">2</span><span class="c-tx">)          </span><span class="c-cm"># [3, 1, 4, 1, 5, 9, 2]</span></span></div>
+      <div class="line"><span class="ln">3</span><span><span class="c-tx">lst.remove(</span><span class="c-num">1</span><span class="c-tx">)          </span><span class="c-cm"># [3, 4, 1, 5, 9, 2]  ← first 1 removed</span></span></div>
+      <div class="line"><span class="ln">4</span><span><span class="c-tx">lst.sort()              </span><span class="c-cm"># [1, 2, 3, 4, 5, 9]</span></span></div>
+      <div class="line"><span class="ln">5</span><span><span class="c-tx">x </span><span class="c-op">=</span><span class="c-tx"> lst.pop()           </span><span class="c-cm"># x = 9, lst = [1, 2, 3, 4, 5]</span></span></div>
+    </div>
+  </section>
+
+  <hr class="divider">
+
+  <!-- ═══ COMPREHENSION ═══ -->
+  <section id="comprehension">
+    <div class="section-meta">
+      <span class="section-num">05</span>
+      <span class="section-tag">Comprehensions</span>
+    </div>
+    <h2 class="section-title">List Comprehensions</h2>
+    <p class="section-desc">A concise way to build a list from any iterable. Reads like plain English: <em>"give me X for each item in Y, if condition."</em></p>
+
+    <div class="comp-syntax">
+      <span class="cs-br">[</span>&nbsp;
+      <span class="cs-expr">expression</span>&nbsp;
+      <span class="cs-kw">for</span>&nbsp;
+      <span class="cs-item">item</span>&nbsp;
+      <span class="cs-kw">in</span>&nbsp;
+      <span class="cs-iter">iterable</span>&nbsp;
+      <span class="cs-dim cs-kw">if</span>&nbsp;<span class="cs-cond cs-dim">condition</span>&nbsp;
+      <span class="cs-br">]</span>
+    </div>
+
+    <div class="comp-labels">
+      <div class="comp-label"><div class="comp-dot" style="background:#86efac"></div>expression — what to keep / transform</div>
+      <div class="comp-label"><div class="comp-dot" style="background:#93c5fd"></div>item — loop variable</div>
+      <div class="comp-label"><div class="comp-dot" style="background:#fde68a"></div>iterable — source to loop over</div>
+      <div class="comp-label"><div class="comp-dot" style="background:#f9a8d4"></div>condition — optional filter</div>
+    </div>
+
+    <div class="two-col">
+      <div>
+        <div class="col-head">Common patterns</div>
+        <div class="code-block">
+          <div class="line"><span class="ln">1</span><span><span class="c-cm"># Squares of 1–5</span></span></div>
+          <div class="line"><span class="ln">2</span><span><span class="c-tx">squares </span><span class="c-op">=</span><span class="c-tx"> [x</span><span class="c-op">**</span><span class="c-num">2</span><span class="c-tx"> </span><span class="c-kw">for</span><span class="c-tx"> x </span><span class="c-kw">in</span><span class="c-tx"> </span><span class="c-fn">range</span><span class="c-tx">(</span><span class="c-num">1</span><span class="c-tx">, </span><span class="c-num">6</span><span class="c-tx">)]</span></span></div>
+          <div class="line"><span class="ln">3</span><span><span class="c-cm"># → [1, 4, 9, 16, 25]</span></span></div>
+          <div class="line"><span class="ln">4</span><span>&nbsp;</span></div>
+          <div class="line"><span class="ln">5</span><span><span class="c-cm"># Even numbers only</span></span></div>
+          <div class="line"><span class="ln">6</span><span><span class="c-tx">evens </span><span class="c-op">=</span><span class="c-tx"> [x </span><span class="c-kw">for</span><span class="c-tx"> x </span><span class="c-kw">in</span><span class="c-tx"> </span><span class="c-fn">range</span><span class="c-tx">(</span><span class="c-num">10</span><span class="c-tx">) </span><span class="c-kw">if</span><span class="c-tx"> x </span><span class="c-op">%</span><span class="c-tx"> </span><span class="c-num">2</span><span class="c-tx"> </span><span class="c-op">==</span><span class="c-tx"> </span><span class="c-num">0</span><span class="c-tx">]</span></span></div>
+          <div class="line"><span class="ln">7</span><span><span class="c-cm"># → [0, 2, 4, 6, 8]</span></span></div>
+          <div class="line"><span class="ln">8</span><span>&nbsp;</span></div>
+          <div class="line"><span class="ln">9</span><span><span class="c-cm"># Transform strings</span></span></div>
+          <div class="line"><span class="ln">10</span><span><span class="c-tx">upper </span><span class="c-op">=</span><span class="c-tx"> [s.upper() </span><span class="c-kw">for</span><span class="c-tx"> s </span><span class="c-kw">in</span><span class="c-tx"> [</span><span class="c-str">"a"</span><span class="c-tx">, </span><span class="c-str">"b"</span><span class="c-tx">, </span><span class="c-str">"c"</span><span class="c-tx">]]</span></span></div>
+          <div class="line"><span class="ln">11</span><span><span class="c-cm"># → ["A", "B", "C"]</span></span></div>
+        </div>
+      </div>
+      <div>
+        <div class="col-head">vs. regular for loop</div>
+        <div class="code-block">
+          <div class="line"><span class="ln">1</span><span><span class="c-cm"># Regular for loop</span></span></div>
+          <div class="line"><span class="ln">2</span><span><span class="c-tx">squares </span><span class="c-op">=</span><span class="c-tx"> []</span></span></div>
+          <div class="line"><span class="ln">3</span><span><span class="c-kw">for</span><span class="c-tx"> x </span><span class="c-kw">in</span><span class="c-tx"> </span><span class="c-fn">range</span><span class="c-tx">(</span><span class="c-num">1</span><span class="c-tx">, </span><span class="c-num">6</span><span class="c-tx">):</span></span></div>
+          <div class="line"><span class="ln">4</span><span><span class="c-tx">    squares.append(x</span><span class="c-op">**</span><span class="c-num">2</span><span class="c-tx">)</span></span></div>
+          <div class="line"><span class="ln">5</span><span>&nbsp;</span></div>
+          <div class="line"><span class="ln">6</span><span><span class="c-cm"># Comprehension — same result, one line</span></span></div>
+          <div class="line"><span class="ln">7</span><span><span class="c-tx">squares </span><span class="c-op">=</span><span class="c-tx"> [x</span><span class="c-op">**</span><span class="c-num">2</span><span class="c-tx"> </span><span class="c-kw">for</span><span class="c-tx"> x </span><span class="c-kw">in</span><span class="c-tx"> </span><span class="c-fn">range</span><span class="c-tx">(</span><span class="c-num">1</span><span class="c-tx">, </span><span class="c-num">6</span><span class="c-tx">)]</span></span></div>
+          <div class="line"><span class="ln">8</span><span>&nbsp;</span></div>
+          <div class="line"><span class="ln">9</span><span><span class="c-cm"># Flatten a 2D list</span></span></div>
+          <div class="line"><span class="ln">10</span><span><span class="c-tx">flat </span><span class="c-op">=</span><span class="c-tx"> [x </span><span class="c-kw">for</span><span class="c-tx"> row </span><span class="c-kw">in</span><span class="c-tx"> matrix </span><span class="c-kw">for</span><span class="c-tx"> x </span><span class="c-kw">in</span><span class="c-tx"> row]</span></span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <hr class="divider">
+
+  <!-- ═══ BUILT-INS ═══ -->
+  <section id="builtins">
+    <div class="section-meta">
+      <span class="section-num">06</span>
+      <span class="section-tag">Built-in Functions</span>
+    </div>
+    <h2 class="section-title">Built-in Functions</h2>
+    <p class="section-desc">Python's standard built-in functions work seamlessly with lists — no import needed.</p>
+
+    <div class="builtins-grid">
+      <div class="bi-card">
+        <div class="bi-fn">len(lst)</div>
+        <div class="bi-desc">Number of elements</div>
+        <div class="bi-ex">len([1,2,3]) → 3</div>
+      </div>
+      <div class="bi-card">
+        <div class="bi-fn">sum(lst)</div>
+        <div class="bi-desc">Sum of all elements</div>
+        <div class="bi-ex">sum([1,2,3]) → 6</div>
+      </div>
+      <div class="bi-card">
+        <div class="bi-fn">min(lst)</div>
+        <div class="bi-desc">Smallest element</div>
+        <div class="bi-ex">min([3,1,2]) → 1</div>
+      </div>
+      <div class="bi-card">
+        <div class="bi-fn">max(lst)</div>
+        <div class="bi-desc">Largest element</div>
+        <div class="bi-ex">max([3,1,2]) → 3</div>
+      </div>
+      <div class="bi-card">
+        <div class="bi-fn">sorted(lst)</div>
+        <div class="bi-desc">New sorted list</div>
+        <div class="bi-ex">sorted([3,1]) → [1,3]</div>
+      </div>
+      <div class="bi-card">
+        <div class="bi-fn">reversed(lst)</div>
+        <div class="bi-desc">Reverse iterator</div>
+        <div class="bi-ex">list(reversed(lst))</div>
+      </div>
+      <div class="bi-card">
+        <div class="bi-fn">enumerate(lst)</div>
+        <div class="bi-desc">Index + value pairs</div>
+        <div class="bi-ex">for i, v in enumerate(lst)</div>
+      </div>
+      <div class="bi-card">
+        <div class="bi-fn">zip(l1, l2)</div>
+        <div class="bi-desc">Pair up two lists</div>
+        <div class="bi-ex">zip([1,2], ['a','b'])</div>
+      </div>
+      <div class="bi-card">
+        <div class="bi-fn">any(lst)</div>
+        <div class="bi-desc">True if any truthy</div>
+        <div class="bi-ex">any([0,0,1]) → True</div>
+      </div>
+      <div class="bi-card">
+        <div class="bi-fn">all(lst)</div>
+        <div class="bi-desc">True if all truthy</div>
+        <div class="bi-ex">all([1,1,1]) → True</div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- ═══════════════════════════════════════
+     CHEATSHEET
+═══════════════════════════════════════ -->
+<div class="wrapper">
+  <div class="cheatsheet">
+    <div class="cs-title">Quick Reference Cheatsheet</div>
+    <div class="cs-grid">
+      <div class="cs-item-box">
+        <div class="cs-item-label">Create</div>
+        <div class="cs-item-code">
+          lst = [1, 2, 3]<br>
+          lst = list(range(5))<br>
+          lst = [x**2 for x in range(5)]
+        </div>
+      </div>
+      <div class="cs-item-box">
+        <div class="cs-item-label">Access & Slice</div>
+        <div class="cs-item-code">
+          lst[0]      # first<br>
+          lst[-1]     # last<br>
+          lst[1:4]    # slice<br>
+          lst[::-1]   # reversed
+        </div>
+      </div>
+      <div class="cs-item-box">
+        <div class="cs-item-label">Modify</div>
+        <div class="cs-item-code">
+          lst.append(x)<br>
+          lst.insert(0, x)<br>
+          lst.remove(x)<br>
+          lst.pop()
+        </div>
+      </div>
+      <div class="cs-item-box">
+        <div class="cs-item-label">Sort & Search</div>
+        <div class="cs-item-code">
+          lst.sort()<br>
+          sorted(lst)<br>
+          lst.index(x)<br>
+          x in lst
+        </div>
+      </div>
+      <div class="cs-item-box">
+        <div class="cs-item-label">Iterate</div>
+        <div class="cs-item-code">
+          for x in lst:<br>
+          for i, v in enumerate(lst):<br>
+          [f(x) for x in lst]
+        </div>
+      </div>
+      <div class="cs-item-box">
+        <div class="cs-item-label">Aggregate</div>
+        <div class="cs-item-code">
+          len(lst)<br>
+          sum(lst)<br>
+          min(lst) / max(lst)<br>
+          any(lst) / all(lst)
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════
+     FOOTER
+═══════════════════════════════════════ -->
+<div class="wrapper">
+  <footer>
+    <div>Python Lists — Lesson 04 of the Python course</div>
+    <div class="mono">next → Dictionaries &amp; Sets</div>
+  </footer>
+</div>
+
+</body>
+</html>

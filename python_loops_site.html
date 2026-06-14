@@ -1,0 +1,726 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Python Loops — Complete Guide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Outfit:wght@300;400;500;600;700;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:      #f5f2eb;
+  --ink:     #0d0d0d;
+  --card:    #ffffff;
+  --muted:   #7a7165;
+  --border:  #e0dbd0;
+  --for:     #2563eb;
+  --while:   #0d9488;
+  --break:   #e11d48;
+  --cont:    #d97706;
+  --else:    #7c3aed;
+  --mono: 'Space Mono', monospace;
+  --sans: 'Outfit', sans-serif;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body { font-family: var(--sans); background: var(--bg); color: var(--ink); line-height: 1.6; overflow-x: hidden; }
+
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+body::before {
+  content: '';
+  position: fixed; inset: 0; z-index: 0; pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+  opacity: .5;
+}
+
+/* ── NAV ── */
+nav {
+  position: sticky; top: 0; z-index: 100;
+  background: rgba(245,242,235,.92); backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--border);
+  padding: 0 40px; display: flex; align-items: center; justify-content: space-between; height: 60px;
+}
+.nav-brand { font-family: var(--mono); font-size: 14px; font-weight: 700; color: var(--ink); text-decoration: none; display: flex; align-items: center; gap: 8px; }
+.nav-brand .nb { color: var(--for); }
+.nav-links { display: flex; gap: 4px; list-style: none; }
+.nav-links a { font-size: 13px; font-weight: 500; color: var(--muted); text-decoration: none; padding: 6px 12px; border-radius: 6px; transition: color .15s, background .15s; }
+.nav-links a:hover { color: var(--ink); background: var(--border); }
+.nav-tag { font-family: var(--mono); font-size: 11px; background: var(--ink); color: var(--bg); padding: 4px 10px; border-radius: 4px; letter-spacing: .05em; }
+
+/* ── HERO ── */
+.hero { position: relative; overflow: hidden; padding: 100px 40px 80px; max-width: 1100px; margin: 0 auto; }
+.hero-eyebrow { font-family: var(--mono); font-size: 12px; color: var(--for); letter-spacing: .12em; text-transform: uppercase; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; }
+.hero-eyebrow::before { content: ''; display: block; width: 32px; height: 1px; background: var(--for); }
+.hero-title { font-size: clamp(52px, 7vw, 88px); font-weight: 900; line-height: .95; letter-spacing: -.03em; margin-bottom: 28px; }
+.hero-title .loop-icon { color: var(--for); }
+.hero-title .dim { color: var(--muted); font-weight: 300; }
+.hero-sub { font-size: 18px; font-weight: 400; color: var(--muted); max-width: 520px; line-height: 1.7; margin-bottom: 36px; }
+.hero-chips { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 48px; }
+.hero-chip { font-family: var(--mono); font-size: 12px; border: 1.5px solid var(--border); border-radius: 999px; padding: 6px 16px; color: var(--muted); transition: all .2s; cursor: default; }
+.hero-chip:hover { border-color: var(--ink); color: var(--ink); }
+.chip-for   { border-color: rgba(37,99,235,.35);  color: var(--for); }
+.chip-while { border-color: rgba(13,148,136,.35); color: var(--while); }
+.chip-break { border-color: rgba(225,29,72,.35);  color: var(--break); }
+.chip-cont  { border-color: rgba(217,119,6,.35);  color: var(--cont); }
+.chip-else  { border-color: rgba(124,58,237,.35); color: var(--else); }
+.hero-demo { background: var(--ink); border-radius: 14px; padding: 24px 28px; font-family: var(--mono); font-size: 14px; line-height: 1.9; max-width: 620px; box-shadow: 0 24px 60px rgba(0,0,0,.18); }
+.hero-demo::before { content: '● ● ●'; display: block; color: #555; font-size: 10px; letter-spacing: 4px; margin-bottom: 16px; }
+.hero-bg-text { position: absolute; right: -20px; top: 30px; font-family: var(--mono); font-size: 150px; font-weight: 700; color: var(--border); line-height: 1; pointer-events: none; user-select: none; z-index: -1; }
+
+/* ── CODE COLOURS ── */
+.c-kw  { color: #c084fc; }
+.c-str { color: #86efac; }
+.c-num { color: #fde68a; }
+.c-fn  { color: #93c5fd; }
+.c-cm  { color: #4b5563; font-style: italic; }
+.c-op  { color: #67e8f9; }
+.c-tx  { color: #e5e7eb; }
+.c-for { color: #60a5fa; }
+.c-wh  { color: #34d399; }
+.c-br  { color: #fb7185; }
+.c-co  { color: #fbbf24; }
+
+/* ── WRAPPER ── */
+.wrapper { max-width: 1100px; margin: 0 auto; padding: 0 40px; }
+.divider { border: none; border-top: 1px solid var(--border); margin: 64px 0; }
+section { padding: 64px 0; }
+
+/* ── SECTION META ── */
+.section-meta { display: flex; align-items: center; gap: 16px; margin-bottom: 16px; }
+.section-num { font-family: var(--mono); font-size: 11px; color: var(--muted); letter-spacing: .1em; border: 1px solid var(--border); border-radius: 4px; padding: 3px 8px; }
+.section-tag { font-size: 12px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.section-title { font-size: clamp(26px, 3.8vw, 40px); font-weight: 800; letter-spacing: -.02em; line-height: 1.1; margin-bottom: 12px; }
+.section-desc { font-size: 16px; color: var(--muted); max-width: 680px; line-height: 1.75; margin-bottom: 32px; }
+
+/* ── CODE BLOCK ── */
+.code-block { background: var(--ink); border-radius: 14px; padding: 22px 26px; font-family: var(--mono); font-size: 13px; line-height: 1.85; overflow-x: auto; margin: 18px 0; box-shadow: 0 8px 32px rgba(0,0,0,.12); }
+.code-block .line { display: flex; gap: 16px; }
+.code-block .ln { color: #374151; min-width: 18px; text-align: right; user-select: none; flex-shrink: 0; }
+.hl-for   { background: rgba(37,99,235,.12);  border-left: 2px solid #2563eb;  margin: 0 -26px; padding: 0 24px; display: flex; gap: 16px; }
+.hl-wh    { background: rgba(13,148,136,.12); border-left: 2px solid #0d9488;  margin: 0 -26px; padding: 0 24px; display: flex; gap: 16px; }
+.hl-br    { background: rgba(225,29,72,.12);  border-left: 2px solid #e11d48;  margin: 0 -26px; padding: 0 24px; display: flex; gap: 16px; }
+.hl-co    { background: rgba(217,119,6,.12);  border-left: 2px solid #d97706;  margin: 0 -26px; padding: 0 24px; display: flex; gap: 16px; }
+.hl-el    { background: rgba(124,58,237,.12); border-left: 2px solid #7c3aed;  margin: 0 -26px; padding: 0 24px; display: flex; gap: 16px; }
+
+/* ── TWO COL ── */
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+.col-head { font-family: var(--mono); font-size: 11px; color: var(--muted); letter-spacing: .1em; text-transform: uppercase; margin-bottom: 10px; }
+
+/* ── PROPERTY CARDS ── */
+.cards-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 32px; }
+.prop-card { background: var(--card); border: 1.5px solid var(--border); border-radius: 16px; padding: 22px 18px; transition: transform .2s, box-shadow .2s, border-color .2s; }
+.prop-card:hover { transform: translateY(-4px); box-shadow: 0 12px 32px rgba(0,0,0,.08); border-color: var(--ink); }
+.prop-icon { font-size: 26px; margin-bottom: 10px; }
+.prop-title { font-size: 14px; font-weight: 700; margin-bottom: 6px; }
+.prop-desc { font-size: 13px; color: var(--muted); line-height: 1.6; }
+
+/* ── RANGE CARDS ── */
+.range-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 20px; }
+.range-card { background: var(--card); border: 1.5px solid var(--border); border-radius: 12px; padding: 16px 14px; transition: border-color .2s; }
+.range-card:hover { border-color: var(--for); }
+.rc-fn   { font-family: var(--mono); font-size: 13px; color: var(--for); font-weight: 700; margin-bottom: 4px; }
+.rc-res  { font-family: var(--mono); font-size: 12px; color: var(--while); margin-bottom: 4px; }
+.rc-desc { font-size: 12px; color: var(--muted); }
+
+/* ── RESULT ROWS ── */
+.rrows { display: flex; flex-direction: column; gap: 8px; }
+.rrow { display: flex; align-items: center; gap: 14px; background: var(--card); border: 1.5px solid var(--border); border-radius: 10px; padding: 11px 18px; font-family: var(--mono); font-size: 13px; transition: border-color .2s; }
+.rrow:hover { border-color: var(--ink); }
+.rrow .expr { min-width: 170px; font-weight: 700; }
+.rrow .arr  { color: var(--muted); }
+.rrow .res  { color: var(--while); flex: 1; }
+.rrow .lbl  { font-size: 11px; font-family: var(--sans); font-weight: 600; border-radius: 4px; padding: 2px 8px; white-space: nowrap; }
+.lbl-for   { background: rgba(37,99,235,.1);  color: var(--for); }
+.lbl-wh    { background: rgba(13,148,136,.1); color: var(--while); }
+.lbl-br    { background: rgba(225,29,72,.1);  color: var(--break); }
+.lbl-co    { background: rgba(217,119,6,.1);  color: var(--cont); }
+.lbl-el    { background: rgba(124,58,237,.1); color: var(--else); }
+
+/* ── SIDE-BY-SIDE COMPARE ── */
+.compare-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin: 20px 0; }
+.compare-box { border-radius: 14px; overflow: hidden; }
+.compare-head { padding: 12px 18px; font-size: 13px; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+.cb-bad  { border: 1.5px solid rgba(225,29,72,.35); }
+.cb-good { border: 1.5px solid rgba(13,148,136,.35); }
+.cb-bad  .compare-head { background: rgba(225,29,72,.07); color: var(--break); }
+.cb-good .compare-head { background: rgba(13,148,136,.07); color: var(--while); }
+
+/* ── ITERATION VISUALIZER ── */
+.iter-vis { background: var(--card); border: 1.5px solid var(--border); border-radius: 16px; padding: 28px 32px; margin: 20px 0; }
+.iter-vis-title { font-family: var(--mono); font-size: 12px; color: var(--muted); margin-bottom: 20px; letter-spacing: .05em; }
+.iter-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
+.iter-item { min-width: 52px; height: 52px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-family: var(--mono); font-size: 15px; font-weight: 700; border: 1.5px solid; transition: all .2s; }
+.ii-normal  { background: #f9fafb; border-color: var(--border); color: var(--ink); }
+.ii-run     { background: rgba(13,148,136,.1);  border-color: var(--while); color: var(--while); }
+.ii-break   { background: rgba(225,29,72,.1);   border-color: var(--break); color: var(--break); }
+.ii-stopped { background: #f9fafb; border-color: var(--border); color: #ccc; text-decoration: line-through; }
+.ii-skip    { background: rgba(217,119,6,.07);  border-color: rgba(217,119,6,.3); color: var(--cont); opacity: .6; }
+.iter-legend { display: flex; gap: 20px; flex-wrap: wrap; font-size: 13px; color: var(--muted); }
+.il-item { display: flex; align-items: center; gap: 7px; }
+.il-dot  { width: 10px; height: 10px; border-radius: 50%; }
+
+/* ── FLOW DIAGRAM ── */
+.flow-wrap { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.flow-box { border-radius: 10px; padding: 11px 24px; font-family: var(--mono); font-size: 13px; text-align: center; min-width: 190px; border: 1.5px solid; }
+.fb-start { background: rgba(37,99,235,.07);  border-color: rgba(37,99,235,.4);  color: var(--for); }
+.fb-check { background: rgba(217,119,6,.07);  border-color: rgba(217,119,6,.4);  color: var(--cont); border-radius: 50px; }
+.fb-body  { background: rgba(13,148,136,.07); border-color: rgba(13,148,136,.4); color: var(--while); }
+.fb-upd   { background: rgba(124,58,237,.07); border-color: rgba(124,58,237,.4); color: var(--else); }
+.fb-end   { background: #f9fafb; border-color: var(--border); color: var(--muted); }
+.flow-arr { font-size: 18px; color: var(--muted); line-height: 1; }
+.flow-yes { font-size: 11px; color: var(--while); font-family: var(--mono); }
+.flow-no  { font-size: 11px; color: var(--break); font-family: var(--mono); }
+.flow-fork { display: flex; gap: 40px; align-items: flex-start; margin-top: 2px; }
+.flow-branch { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+
+/* ── COMPARISON TABLE ── */
+.ct-wrap { background: var(--card); border: 1.5px solid var(--border); border-radius: 14px; overflow: hidden; margin: 20px 0; }
+.ct-table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+.ct-table th { padding: 12px 18px; text-align: left; font-size: 11px; letter-spacing: .08em; text-transform: uppercase; font-family: var(--sans); font-weight: 600; border-bottom: 1px solid var(--border); color: var(--muted); }
+.ct-table td { padding: 11px 18px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+.ct-table tr:last-child td { border-bottom: none; }
+.ct-table tr:hover td { background: rgba(0,0,0,.015); }
+.ct-prop { color: var(--muted); font-size: 13px; }
+.ct-for  { color: var(--for);   font-family: var(--mono); font-size: 13px; }
+.ct-wh   { color: var(--while); font-family: var(--mono); font-size: 13px; }
+
+/* ── CALLOUT ── */
+.callout { border-left: 3px solid var(--for); padding: 14px 20px; background: rgba(37,99,235,.05); border-radius: 0 10px 10px 0; font-size: 14px; color: var(--muted); margin: 20px 0; line-height: 1.7; }
+.callout.c-while { border-color: var(--while); background: rgba(13,148,136,.05); }
+.callout.c-break { border-color: var(--break); background: rgba(225,29,72,.05); }
+.callout.c-cont  { border-color: var(--cont);  background: rgba(217,119,6,.05); }
+.callout.c-else  { border-color: var(--else);  background: rgba(124,58,237,.05); }
+.callout strong { color: var(--ink); }
+code { font-family: var(--mono); font-size: .88em; background: rgba(37,99,235,.08); color: var(--for); padding: 2px 6px; border-radius: 4px; }
+
+/* ── CHEATSHEET ── */
+.cheatsheet { background: var(--ink); border-radius: 20px; padding: 48px; margin: 64px 0; position: relative; overflow: hidden; }
+.cheatsheet::before { content: '🔁'; position: absolute; right: 48px; top: 50%; transform: translateY(-50%); font-size: 130px; opacity: .06; pointer-events: none; }
+.cs-title { font-size: 22px; font-weight: 800; color: #fff; margin-bottom: 28px; letter-spacing: -.01em; }
+.cs-grid  { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+.cs-box   { background: rgba(255,255,255,.05); border-radius: 10px; padding: 16px 18px; }
+.cs-label { font-family: var(--mono); font-size: 12px; margin-bottom: 8px; font-weight: 700; }
+.cs-code  { font-family: var(--mono); font-size: 12.5px; color: #86efac; line-height: 1.8; }
+.cs-note  { font-size: 12px; color: #6b7280; margin-top: 6px; }
+
+/* ── FOOTER ── */
+footer { border-top: 1px solid var(--border); padding: 40px; display: flex; align-items: center; justify-content: space-between; max-width: 1100px; margin: 0 auto; font-size: 13px; color: var(--muted); }
+footer .mono { font-family: var(--mono); color: var(--ink); }
+
+/* ── ANIMATIONS ── */
+@keyframes fadeUp { from { opacity:0; transform:translateY(20px);} to { opacity:1; transform:translateY(0);} }
+.hero-eyebrow { animation: fadeUp .5s ease both; }
+.hero-title   { animation: fadeUp .5s .1s ease both; }
+.hero-sub     { animation: fadeUp .5s .2s ease both; }
+.hero-chips   { animation: fadeUp .5s .3s ease both; }
+.hero-demo    { animation: fadeUp .5s .4s ease both; }
+
+/* ── RESPONSIVE ── */
+@media (max-width: 768px) {
+  .cards-row, .range-grid { grid-template-columns: 1fr 1fr; }
+  .two-col, .compare-grid { grid-template-columns: 1fr; }
+  .cs-grid { grid-template-columns: 1fr 1fr; }
+  .nav-links { display: none; }
+  nav, .wrapper { padding-left: 20px; padding-right: 20px; }
+  .hero { padding: 60px 20px 40px; }
+  .hero-bg-text { display: none; }
+}
+@media (max-width: 480px) {
+  .cards-row { grid-template-columns: 1fr; }
+  .cs-grid { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<!-- ── NAV ── -->
+<nav>
+  <a class="nav-brand" href="#"><span class="nb">🔁</span> Loops in Python</a>
+  <ul class="nav-links">
+    <li><a href="#for">for loop</a></li>
+    <li><a href="#range">range()</a></li>
+    <li><a href="#while">while loop</a></li>
+    <li><a href="#forvswhile">for vs while</a></li>
+    <li><a href="#break">break</a></li>
+    <li><a href="#continue">continue</a></li>
+    <li><a href="#else">else clause</a></li>
+    <li><a href="#nested">nested</a></li>
+  </ul>
+  <span class="nav-tag">Lesson 05</span>
+</nav>
+
+<!-- ── HERO ── -->
+<div class="hero">
+  <div class="hero-bg-text">for</div>
+  <div class="hero-eyebrow">Python · Control Flow</div>
+  <h1 class="hero-title">
+    Python<br>
+    <span class="loop-icon">Loops</span> <span class="dim">🔁</span>
+  </h1>
+  <p class="hero-sub">Execute code repeatedly — iterate over collections, repeat while a condition holds, and control the flow with <code style="background:rgba(225,29,72,.08);color:var(--break)">break</code> and <code style="background:rgba(217,119,6,.08);color:var(--cont)">continue</code>.</p>
+  <div class="hero-chips">
+    <span class="hero-chip chip-for">for</span>
+    <span class="hero-chip chip-while">while</span>
+    <span class="hero-chip chip-break">break</span>
+    <span class="hero-chip chip-cont">continue</span>
+    <span class="hero-chip chip-else">else clause</span>
+    <span class="hero-chip">nested loops</span>
+    <span class="hero-chip">range()</span>
+    <span class="hero-chip">enumerate()</span>
+  </div>
+  <div class="hero-demo">
+    <span class="c-cm"># for — iterate over a collection</span><br>
+    <span class="c-kw">for</span> <span class="c-tx">fruit</span> <span class="c-kw">in</span> <span class="c-tx">[</span><span class="c-str">"apple"</span><span class="c-tx">, </span><span class="c-str">"mango"</span><span class="c-tx">, </span><span class="c-str">"kiwi"</span><span class="c-tx">]:</span><br>
+    <span class="c-tx">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="c-fn">print</span><span class="c-tx">(fruit)</span><br>
+    <br>
+    <span class="c-cm"># while — repeat until condition is False</span><br>
+    <span class="c-tx">count </span><span class="c-op">=</span> <span class="c-num">0</span><br>
+    <span class="c-kw">while</span> <span class="c-tx">count </span><span class="c-op">&lt;</span> <span class="c-num">3</span><span class="c-tx">:</span><br>
+    <span class="c-tx">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="c-fn">print</span><span class="c-tx">(count)</span><br>
+    <span class="c-tx">&nbsp;&nbsp;&nbsp;&nbsp;count </span><span class="c-op">+=</span> <span class="c-num">1</span>
+  </div>
+</div>
+
+<!-- ── CONTENT ── -->
+<div class="wrapper">
+  <hr class="divider">
+
+  <!-- ════ FOR LOOP ════ -->
+  <section id="for">
+    <div class="section-meta"><span class="section-num">01</span><span class="section-tag">for loop</span></div>
+    <h2 class="section-title" style="color:var(--for)">The <code style="background:rgba(37,99,235,.1);color:var(--for);font-size:.85em">for</code> loop</h2>
+    <p class="section-desc">Iterates over every element of an iterable — a list, string, tuple, dictionary, or <code>range()</code>. The number of iterations is known upfront.</p>
+
+    <div class="cards-row">
+      <div class="prop-card" style="border-top:2px solid var(--for)">
+        <div class="prop-icon">📋</div>
+        <div class="prop-title">Known count</div>
+        <div class="prop-desc">Best when you know what you're iterating over — a list, string, or range.</div>
+      </div>
+      <div class="prop-card" style="border-top:2px solid var(--for)">
+        <div class="prop-icon">🔤</div>
+        <div class="prop-title">Any iterable</div>
+        <div class="prop-desc">Works on lists, strings, tuples, dicts, sets, generators — anything iterable.</div>
+      </div>
+      <div class="prop-card" style="border-top:2px solid var(--for)">
+        <div class="prop-icon">🔢</div>
+        <div class="prop-title">Auto variable</div>
+        <div class="prop-desc">Each iteration the loop variable is automatically set to the next element.</div>
+      </div>
+      <div class="prop-card" style="border-top:2px solid var(--for)">
+        <div class="prop-icon">📦</div>
+        <div class="prop-title">Unpacking</div>
+        <div class="prop-desc">Use <code>for k, v in dict.items()</code> to unpack pairs in one go.</div>
+      </div>
+    </div>
+
+    <div class="two-col">
+      <div>
+        <div class="col-head">Syntax &amp; examples</div>
+        <div class="code-block">
+          <div class="line"><span class="ln">1</span><span><span class="c-cm"># Basic syntax</span></span></div>
+          <div class="hl-for"><span class="ln">2</span><span><span class="c-kw">for</span> <span class="c-for">variable</span> <span class="c-kw">in</span> <span class="c-tx">iterable<span class="c-op">:</span></span></span></div>
+          <div class="hl-for"><span class="ln">3</span><span><span class="c-tx">&nbsp;&nbsp;&nbsp;&nbsp;# body of the loop</span></span></div>
+          <div class="line"><span class="ln">4</span><span>&nbsp;</span></div>
+          <div class="line"><span class="ln">5</span><span><span class="c-cm"># Over a list</span></span></div>
+          <div class="hl-for"><span class="ln">6</span><span><span class="c-kw">for</span> <span class="c-for">n</span> <span class="c-kw">in</span> <span class="c-tx">[</span><span class="c-num">10</span><span class="c-tx">, </span><span class="c-num">20</span><span class="c-tx">, </span><span class="c-num">30</span><span class="c-tx">]:</span></span></div>
+          <div class="hl-for"><span class="ln">7</span><span><span class="c-tx">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="c-fn">print</span><span class="c-tx">(n)</span></span></div>
+          <div class="line"><span class="ln">8</span><span>&nbsp;</span></div>
+          <div class="line"><span class="ln">9</span><span><span class="c-cm"># Over a string (char by char)</span></span></div>
+          <div class="hl-for"><span class="ln">10</span><span><span class="c-kw">for</span> <span class="c-for">ch</span> <span class="c-kw">in</span> <span class="c-str">"hello"</span><span class="c-tx">:</span></span></div>
+          <div class="hl-for"><span class="ln">11</span><span><span class="c-tx">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="c-fn">print</span><span class="c-tx">(ch)  </span><span class="c-cm"># h e l l o</span></span></div>
+          <div class="line"><span class="ln">12</span><span>&nbsp;</span></div>
+          <div class="line"><span class="ln">13</span><span><span class="c-cm"># enumerate() — index + value</span></span></div>
+          <div class="hl-for"><span class="ln">14</span><span><span class="c-kw">for</span> <span class="c-for">i, v</span> <span class="c-kw">in</span> <span class="c-fn">enumerate</span><span class="c-tx">([</span><span class="c-str">"a"</span><span class="c-tx">,</span><span class="c-str">"b"</span><span class="c-tx">,</span><span class="c-str">"c"</span><span class="c-tx">]):</span></span></div>
+          <div class="hl-for"><span class="ln">15</span><span><span class="c-tx">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="c-fn">print</span><span class="c-tx">(i, v)  </span><span class="c-cm"># 0 a / 1 b / 2 c</span></span></div>
+        </div>
+      </div>
+      <div>
+        <div class="col-head">What you can iterate over</div>
+        <div class="rrows" style="margin-top:4px">
+          <div class="rrow"><span class="expr" style="color:var(--for)">list / tuple</span><span class="arr">→</span><span class="res">[1, 2, 3]</span><span class="lbl lbl-for">ordered</span></div>
+          <div class="rrow"><span class="expr" style="color:var(--for)">string</span><span class="arr">→</span><span class="res">"hello" → h,e,l,l,o</span><span class="lbl lbl-for">chars</span></div>
+          <div class="rrow"><span class="expr" style="color:var(--for)">range(n)</span><span class="arr">→</span><span class="res">0, 1, 2 … n-1</span><span class="lbl lbl-for">numbers</span></div>
+          <div class="rrow"><span class="expr" style="color:var(--for)">dict</span><span class="arr">→</span><span class="res">keys by default</span><span class="lbl lbl-for">mapping</span></div>
+          <div class="rrow"><span class="expr" style="color:var(--for)">enumerate()</span><span class="arr">→</span><span class="res">(index, value) pairs</span><span class="lbl lbl-for">indexed</span></div>
+          <div class="rrow"><span class="expr" style="color:var(--for)">zip(l1, l2)</span><span class="arr">→</span><span class="res">(a1,b1), (a2,b2) …</span><span class="lbl lbl-for">paired</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <hr class="divider">
+
+  <!-- ════ RANGE ════ -->
+  <section id="range">
+    <div class="section-meta"><span class="section-num">02</span><span class="section-tag">range()</span></div>
+    <h2 class="section-title">The <code style="background:rgba(37,99,235,.1);color:var(--for);font-size:.85em">range()</code> function</h2>
+    <p class="section-desc"><code>range(start, stop, step)</code> generates a sequence of integers on the fly — memory-efficient and the most common way to loop a fixed number of times.</p>
+
+    <div class="range-grid">
+      <div class="range-card">
+        <div class="rc-fn">range(5)</div>
+        <div class="rc-res">0, 1, 2, 3, 4</div>
+        <div class="rc-desc">0 up to 4 — stop is exclusive</div>
+      </div>
+      <div class="range-card">
+        <div class="rc-fn">range(2, 7)</div>
+        <div class="rc-res">2, 3, 4, 5, 6</div>
+        <div class="rc-desc">Start from 2, stop before 7</div>
+      </div>
+      <div class="range-card">
+        <div class="rc-fn">range(0, 10, 2)</div>
+        <div class="rc-res">0, 2, 4, 6, 8</div>
+        <div class="rc-desc">Step 2 — even numbers only</div>
+      </div>
+      <div class="range-card">
+        <div class="rc-fn">range(5, 0, -1)</div>
+        <div class="rc-res">5, 4, 3, 2, 1</div>
+        <div class="rc-desc">Negative step — countdown</div>
+      </div>
+    </div>
+
+    <div class="code-block">
+      <div class="line"><span class="ln">1</span><span><span class="c-cm"># Sum 1 to 100</span></span></div>
+      <div class="hl-for"><span class="ln">2</span><span><span class="c-tx">total </span><span class="c-op">=</span><span class="c-tx"> </span><span class="c-fn">sum</span><span class="c-tx">(</span><span class="c-fn">range</span><span class="c-tx">(</span><span class="c-num">1</span><span class="c-tx">, </span><span class="c-num">101</span><span class="c-tx">))  </span><span class="c-cm"># 5050</span></span></div>
+      <div class="line"><span class="ln">3</span><span>&nbsp;</span></div>
+      <div class="line"><span class="ln">4</span><span><span class="c-cm"># Print multiplication table of 3</span></span></div>
+      <div class="hl-for"><span class="ln">5</span><span><span class="c-kw">for</span><span class="c-tx"> i </span><span class="c-kw">in</span><span class="c-tx"> </span><span class="c-fn">range</span><span class="c-tx">(</span><span class="c-num">1</span><span class="c-tx">, </span><span class="c-num">11</span><span class="c-tx">):</span></span></div>
+      <div class="hl-for"><span class="ln">6</span><span><span class="c-tx">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="c-fn">print</span><span class="c-tx">(</span><span class="c-str">f"3 × {i} = {3*i}"</span><span class="c-tx">)</span></span></div>
+      <div class="line"><span class="ln">7</span><span>&nbsp;</span></div>
+      <div class="line"><span class="ln">8</span><span><span class="c-cm"># Countdown from 10</span></span></div>
+      <div class="hl-for"><span class="ln">9</span><span><span class="c-kw">for</span><span class="c-tx"> i </span><span class="c-kw">in</span><span class="c-tx"> </span><span class="c-fn">range</span><span class="c-tx">(</span><span class="c-num">10</span><span class="c-tx">, </span><span class="c-num">0</span><span class="c-tx">, </span><span class="c-op">-</span><span class="c-num">1</span><span class="c-tx">):</span></span></div>
+      <div class="hl-for"><span class="ln">10</span><span><span class="c-tx">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="c-fn">print</span><span class="c-tx">(i, end</span><span class="c-op">=</span><span class="c-str">" "</span><span class="c-tx">)  </span><span class="c-cm"># 10 9 8 … 1</span></span></div>
+    </div>
+  </section>
+
+  <hr class="divider">
+
+  <!-- ════ WHILE ════ -->
+  <section id="while">
+    <div class="section-meta"><span class="section-num">03</span><span class="section-tag">while loop</span></div>
+    <h2 class="section-title" style="color:var(--while)">The <code style="background:rgba(13,148,136,.1);color:var(--while);font-size:.85em">while</code> loop</h2>
+    <p class="section-desc">Executes its body <em>as long as a condition remains True</em>. The number of iterations is not known in advance — it depends on data or user input.</p>
+
+    <div class="two-col">
+      <div>
+        <div class="col-head">Syntax &amp; flow</div>
+        <div class="code-block">
+          <div class="line"><span class="ln">1</span><span><span class="c-cm"># Basic syntax</span></span></div>
+          <div class="hl-wh"><span class="ln">2</span><span><span class="c-kw">while</span> <span class="c-wh">condition</span><span class="c-op">:</span></span></div>
+          <div class="hl-wh"><span class="ln">3</span><span><span class="c-tx">&nbsp;&nbsp;&nbsp;&nbsp;# body</span></span></div>
+          <div class="line"><span class="ln">4</span><span>&nbsp;</span></div>
+          <div class="line"><span class="ln">5</span><span><span class="c-cm"># Count down from 5</span></span></div>
+          <div class="hl-wh"><span class="ln">6</span><span><span class="c-tx">n </span><span class="c-op">=</span><span class="c-tx"> </span><span class="c-num">5</span></span></div>
+          <div class="hl-wh"><span class="ln">7</span><span><span class="c-kw">while</span><span class="c-tx"> n </span><span class="c-op">&gt;</span><span class="c-tx"> </span><span class="c-num">0</span><span class="c-op">:</span></span></div>
+          <div class="hl-wh"><span class="ln">8</span><span><span class="c-tx">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="c-fn">print</span><span class="c-tx">(n)</span></span></div>
+          <div class="hl-wh"><span class="ln">9</span><span><span class="c-tx">&nbsp;&nbsp;&nbsp;&nbsp;n </span><span class="c-op">-=</span><span class="c-tx"> </span><span class="c-num">1</span><span class="c-tx">  </span><span class="c-cm"># ← must update!</span></span></div>
+          <div class="line"><span class="ln">10</span><span>&nbsp;</span></div>
+          <div class="line"><span class="ln">11</span><span><span class="c-cm"># Wait for correct input</span></span></div>
+          <div class="hl-wh"><span class="ln">12</span><span><span class="c-kw">while</span><span class="c-tx"> </span><span class="c-fn">input</span><span class="c-tx">(</span><span class="c-str">"Password: "</span><span class="c-tx">) </span><span class="c-op">!=</span><span class="c-tx"> </span><span class="c-str">"secret"</span><span class="c-op">:</span></span></div>
+          <div class="hl-wh"><span class="ln">13</span><span><span class="c-tx">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="c-fn">print</span><span class="c-tx">(</span><span class="c-str">"Wrong, try again"</span><span class="c-tx">)</span></span></div>
+        </div>
+        <div class="callout c-break" style="margin-top:14px">
+          <strong>⚠️ Infinite loop:</strong> If the condition never becomes <code>False</code>, the loop runs forever. Always make sure the condition changes inside the body.
+        </div>
+      </div>
+      <div>
+        <div class="col-head">Control flow diagram</div>
+        <div class="flow-wrap" style="padding-top:8px">
+          <div class="flow-box fb-start">Start</div>
+          <div class="flow-arr">↓</div>
+          <div class="flow-box fb-check">condition True?</div>
+          <div class="flow-fork">
+            <div class="flow-branch">
+              <span class="flow-yes">yes ↓</span>
+              <div class="flow-box fb-body">body executes</div>
+              <div class="flow-arr">↓</div>
+              <div class="flow-box fb-upd">update variable</div>
+              <div class="flow-arr">↑&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;↰ back to check</div>
+            </div>
+            <div class="flow-branch">
+              <span class="flow-no">no →</span>
+              <div class="flow-box fb-end">exit loop</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <hr class="divider">
+
+  <!-- ════ FOR vs WHILE ════ -->
+  <section id="forvswhile">
+    <div class="section-meta"><span class="section-num">04</span><span class="section-tag">Comparison</span></div>
+    <h2 class="section-title"><code style="color:var(--for);font-size:.85em;background:rgba(37,99,235,.1)">for</code> vs <code style="color:var(--while);font-size:.85em;background:rgba(13,148,136,.1)">while</code></h2>
+    <p class="section-desc">Both loops are powerful — knowing when to use each makes your code cleaner and more intentional.</p>
+
+    <div class="ct-wrap">
+      <table class="ct-table">
+        <thead>
+          <tr>
+            <th>Aspect</th>
+            <th style="color:var(--for)">for loop</th>
+            <th style="color:var(--while)">while loop</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td class="ct-prop">Iterations</td><td class="ct-for">Known in advance</td><td class="ct-wh">Unknown — depends on condition</td></tr>
+          <tr><td class="ct-prop">Use case</td><td class="ct-for">Iterating over a collection</td><td class="ct-wh">Repeating until an event</td></tr>
+          <tr><td class="ct-prop">Counter needed?</td><td class="ct-for">No — automatic</td><td class="ct-wh">Yes — you manage it</td></tr>
+          <tr><td class="ct-prop">Risk</td><td class="ct-for">Low</td><td class="ct-wh">Infinite loop if not careful</td></tr>
+          <tr><td class="ct-prop">Typical example</td><td class="ct-for">for item in cart</td><td class="ct-wh">while user != "quit"</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="two-col" style="margin-top:20px">
+      <div>
+        <div class="code-block">
+          <div class="line"><span class="ln">1</span><span><span class="c-cm"># for — loop through known items</span></span></div>
+          <div class="hl-for"><span class="ln">2</span><span><span class="c-kw">for</span><span class="c-tx"> item </span><span class="c-kw">in</span><span class="c-tx"> shopping_cart:</span></span></div>
+          <div class="hl-for"><span class="ln">3</span><span><span class="c-tx">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="c-fn">print</span><span class="c-tx">(item, item.price)</span></span></div>
+        </div>
+      </div>
+      <div>
+        <div class="code-block">
+          <div class="line"><span class="ln">1</span><span><span class="c-cm"># while — repeat until user says stop</span></span></div>
+          <div class="hl-wh"><span class="ln">2</span><span><span class="c-kw">while</span><span class="c-tx"> (cmd </span><span class="c-op">:=</span><span class="c-tx"> </span><span class="c-fn">input</span><span class="c-tx">(</span><span class="c-str">"&gt; "</span><span class="c-tx">)) </span><span class="c-op">!=</span><span class="c-tx"> </span><span class="c-str">"exit"</span><span class="c-op">:</span></span></div>
+          <div class="hl-wh"><span class="ln">3</span><span><span class="c-tx">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="c-fn">process</span><span class="c-tx">(cmd)</span></span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <hr class="divider">
+
+  <!-- ════ BREAK ════ -->
+  <section id="break">
+    <div class="section-meta"><span class="section-num">05</span><span class="section-tag">break</span></div>
+    <h2 class="section-title" style="color:var(--break)">The <code style="background:rgba(225,29,72,.1);color:var(--break);font-size:.85em">break</code> statement</h2>
+    <p class="section-desc"><code style="background:rgba(225,29,72,.08);color:var(--break)">break</code> immediately exits the loop — no more iterations, even if items remain or the condition is still True.</p>
+
+    <div class="iter-vis">
+      <div class="iter-vis-title">Loop over [3, 7, 4, 9, 2] — stop at first even number</div>
+      <div class="iter-row">
+        <div class="iter-item ii-run">3</div>
+        <div class="iter-item ii-run">7</div>
+        <div class="iter-item ii-break">4 ✗</div>
+        <div class="iter-item ii-stopped">9</div>
+        <div class="iter-item ii-stopped">2</div>
+      </div>
+      <div class="iter-legend">
+        <div class="il-item"><div class="il-dot" style="background:var(--while)"></div>executed</div>
+        <div class="il-item"><div class="il-dot" style="background:var(--break)"></div>triggered break</div>
+        <div class="il-item"><div class="il-dot" style="background:#e5e7eb"></div>never reached</div>
+      </div>
+    </div>
+
+    <div class="two-col">
+      <div>
+        <div class="code-block">
+          <div class="line"><span class="ln">1</span><span><span class="c-cm"># Find first even number</span></span></div>
+          <div class="line"><span class="ln">2</span><span><span class="c-kw">for</span><span class="c-tx"> n </span><span class="c-kw">in</span><span class="c-tx"> [</span><span class="c-num">3</span><span class="c-tx">, </span><span class="c-num">7</span><span class="c-tx">, </span><span class="c-num">4</span><span class="c-tx">, </span><span class="c-num">9</span><span class="c-tx">, </span><span class="c-num">2</span><span class="c-tx">]:</span></span></div>
+          <div class="line"><span class="ln">3</span><span><span class="c-tx">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="c-kw">if</span><span class="c-tx"> n </span><span class="c-op">%</span><span class="c-tx"> </span><span class="c-num">2</span><span class="c-tx"> </span><span class="c-op">==</span><span class="c-tx"> </span><span class="c-num">0</span><span class="c-op">:</span></span></div>
+          <div class="hl-br"><span class="ln">4</span><span><span class="c-tx">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="c-fn">print</span><span class="c-tx">(</span><span class="c-str">f"Found: {n}"</span><span class="c-tx">)  </span><span class="c-cm"># 4</span></span></div>
+          <div class="hl-br"><span class="ln">5</span><span><span class="c-tx">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="c-kw">break</span><span class="c-tx">  </span><span class="c-cm"># stop immediately</span></span></div>
+        </div>
+      </div>
+      <div>
+        <div class="code-block">
+          <div class="line"><span class="ln">1</span><span><span class="c-cm"># while True + break — common pattern</span></span></div>
+          <div class="line"><span class="ln">2</span><span><span class="c-kw">while</span><span class="c-tx"> </span><span class="c-kw">True</span><span class="c-op">:</span></span></div>
+          <div class="line"><span class="ln">3</span><span><span class="c-tx">&nbsp;&nbsp;&nbsp;&nbsp;cmd </span><span class="c-op">=</span><span class="c-tx"> </span><span class="c-fn">input</span><span class="c-tx">(</span><span class="c-str">"Enter command: "</span><span class="c-tx">)</span></span></div>
+          <div class="hl-br"><span class="ln">4</span><span><span class="c-tx">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="c-kw">if</span><span class="c-tx"> cmd </span><span class="c-op">==</span><span class="c-tx"> </span><span class="c-str">"quit"</span><span class="c-op">:</span></span></div>
+          <div class="hl-br"><span class="ln">5</span><span><span class="c-tx">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="c-kw">break</span><span class="c-tx">  </span><span class="c-cm"># only way out</span></span></div>
+          <div class="line"><span class="ln">6</span><span><span class="c-tx">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="c-fn">process</span><span class="c-tx">(cmd)</span></span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <hr class="divider">
+
+  <!-- ════ CONTINUE ════ -->
+  <section id="continue">
+    <div class="section-meta"><span class="section-num">06</span><span class="section-tag">continue</span></div>
+    <h2 class="section-title" style="color:var(--cont)">The <code style="background:rgba(217,119,6,.1);color:var(--cont);font-size:.85em">continue</code> statement</h2>
+    <p class="section-desc"><code style="background:rgba(217,119,6,.08);color:var(--cont)">continue</code> skips the <em>rest of the current iteration</em> and jumps to the next one. The loop does <strong>not</strong> stop — only this step is skipped.</p>
+
+    <div class="iter-vis">
+      <div class="iter-vis-title">Loop over range(1, 8) — skip even numbers, print odd ones</div>
+      <div class="iter-row">
+        <div class="iter-item ii-run">1</div>
+        <div class="iter-item ii-skip">2</div>
+        <div class="iter-item ii-run">3</div>
+        <div class="iter-item ii-skip">4</div>
+        <div class="iter-item ii-run">5</div>
+        <div class="iter-item ii-skip">6</div>
+        <div class="iter-item ii-run">7</div>
+      </div>
+      <div class="iter-legend">
+        <div class="il-item"><div class="il-dot" style="background:var(--while)"></div>executed — odd</div>
+        <div class="il-item"><div class="il-dot" style="background:var(--cont)"></div>continue triggered — even, skipped</div>
+      </div>
+    </div>
+
+    <div class="two-col">
+      <div>
+        <div class="code-block">
+          <div class="line"><span class="ln">1</span><span><span class="c-cm"># Print only odd numbers</span></span></div>
+          <div class="line"><span class="ln">2</span><span><span class="c-kw">for</span><span class="c-tx"> n </span><span class="c-kw">in</span><span class="c-tx"> </span><span class="c-fn">range</span><span class="c-tx">(</span><span class="c-num">1</span><span class="c-tx">, </span><span class="c-num">8</span><span class="c-tx">):</span></span></div>
+          <div class="hl-co"><span class="ln">3</span><span><span class="c-tx">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="c-kw">if</span><span class="c-tx"> n </span><span class="c-op">%</span><span class="c-tx"> </span><span class="c-num">2</span><span class="c-tx"> </span><span class="c-op">==</span><span class="c-tx"> </span><span class="c-num">0</span><span class="c-op">:</span></span></div>
+          <div class="hl-co"><span class="ln">4</span><span><span class="c-tx">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="c-kw">continue</span><span class="c-tx">  </span><span class="c-cm"># skip even</span></span></div>
+          <div class="line"><span class="ln">5</span><span><span class="c-tx">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="c-fn">print</span><span class="c-tx">(n)  </span><span class="c-cm"># 1 3 5 7</span></span></div>
+        </div>
+      </div>
+      <div>
+        <div class="code-block">
+          <div class="line"><span class="ln">1</span><span><span class="c-cm"># Skip empty lines when reading</span></span></div>
+          <div class="line"><span class="ln">2</span><span><span class="c-kw">for</span><span class="c-tx"> line </span><span class="c-kw">in</span><span class="c-tx"> lines:</span></span></div>
+          <div class="hl-co"><span class="ln">3</span><span><span class="c-tx">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="c-kw">if not</span><span class="c-tx"> line.strip():</span></span></div>
+          <div class="hl-co"><span class="ln">4</span><span><span class="c-tx">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="c-kw">continue</span><span class="c-tx">  </span><span class="c-cm"># skip blank lines</span></span></div>
+          <div class="line"><span class="ln">5</span><span><span class="c-tx">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="c-fn">process</span><span class="c-tx">(line)</span></span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="callout c-break" style="margin-top: 8px;">
+      <strong>break vs continue:</strong> <code style="color:var(--break)">break</code> exits the whole loop. <code style="color:var(--cont)">continue</code> skips only the current iteration — the loop keeps going.
+    </div>
+  </section>
+
+  <hr class="divider">
+
+  <!-- ════ ELSE CLAUSE ════ -->
+  <section id="else">
+    <div class="section-meta"><span class="section-num">07</span><span class="section-tag">else clause</span></div>
+    <h2 class="section-title">Loop <code style="background:rgba(124,58,237,.1);color:var(--else);font-size:.85em">else</code> clause</h2>
+    <p class="section-desc">Python allows an <code style="color:var(--else)">else</code> block on loops. It runs after the loop completes <em>normally</em> — meaning no <code>break</code> was triggered. Useful for "search and not found" patterns.</p>
+
+    <div class="two-col">
+      <div>
+        <div class="compare-grid" style="grid-template-columns:1fr">
+          <div class="compare-box cb-good">
+            <div class="compare-head">✅ else runs — no break hit</div>
+            <div class="code-block" style="border-radius:0;border:none;box-shadow:none;margin:0">
+              <div class="line"><span class="ln">1</span><span><span class="c-kw">for</span><span class="c-tx"> n </span><span class="c-kw">in</span><span class="c-tx"> [</span><span class="c-num">1</span><span class="c-tx">, </span><span class="c-num">3</span><span class="c-tx">, </span><span class="c-num">5</span><span class="c-tx">]:</span></span></div>
+              <div class="line"><span class="ln">2</span><span><span class="c-tx">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="c-kw">if</span><span class="c-tx"> n </span><span class="c-op">%</span><span class="c-tx"> </span><span class="c-num">2</span><span class="c-tx"> </span><span class="c-op">==</span><span class="c-tx"> </span><span class="c-num">0</span><span class="c-op">:</span></span></div>
+              <div class="line"><span class="ln">3</span><span><span class="c-tx">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="c-kw">break</span></span></div>
+              <div class="hl-el"><span class="ln">4</span><span><span class="c-kw">else</span><span class="c-op">:</span></span></div>
+              <div class="hl-el"><span class="ln">5</span><span><span class="c-tx">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="c-fn">print</span><span class="c-tx">(</span><span class="c-str">"No evens found"</span><span class="c-tx">)  </span><span class="c-cm"># ← runs</span></span></div>
+            </div>
+          </div>
+          <div class="compare-box cb-bad" style="margin-top:12px">
+            <div class="compare-head">❌ else skipped — break hit</div>
+            <div class="code-block" style="border-radius:0;border:none;box-shadow:none;margin:0">
+              <div class="line"><span class="ln">1</span><span><span class="c-kw">for</span><span class="c-tx"> n </span><span class="c-kw">in</span><span class="c-tx"> [</span><span class="c-num">1</span><span class="c-tx">, </span><span class="c-num">2</span><span class="c-tx">, </span><span class="c-num">3</span><span class="c-tx">]:</span></span></div>
+              <div class="line"><span class="ln">2</span><span><span class="c-tx">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="c-kw">if</span><span class="c-tx"> n </span><span class="c-op">%</span><span class="c-tx"> </span><span class="c-num">2</span><span class="c-tx"> </span><span class="c-op">==</span><span class="c-tx"> </span><span class="c-num">0</span><span class="c-op">:</span></span></div>
+              <div class="hl-br"><span class="ln">3</span><span><span class="c-tx">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="c-kw">break</span><span class="c-tx">  </span><span class="c-cm"># break triggered on 2!</span></span></div>
+              <div class="line"><span class="ln">4</span><span><span class="c-kw">else</span><span class="c-op">:</span></span></div>
+              <div class="line"><span class="ln">5</span><span><span class="c-tx">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="c-fn">print</span><span class="c-tx">(</span><span class="c-str">"No evens"</span><span class="c-tx">)  </span><span class="c-cm"># ← never runs</span></span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div>
+        <div class="col-head">Practical — linear search</div>
+        <div class="code-block">
+          <div class="line"><span class="ln">1</span><span><span class="c-cm"># Search for a target value</span></span></div>
+          <div class="line"><span class="ln">2</span><span><span class="c-kw">def</span><span class="c-tx"> </span><span class="c-fn">find</span><span class="c-tx">(lst, target):</span></span></div>
+          <div class="line"><span class="ln">3</span><span><span class="c-tx">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="c-kw">for</span><span class="c-tx"> i, v </span><span class="c-kw">in</span><span class="c-tx"> </span><span class="c-fn">enumerate</span><span class="c-tx">(lst):</span></span></div>
+          <div class="line"><span class="ln">4</span><span><span class="c-tx">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="c-kw">if</span><span class="c-tx"> v </span><span class="c-op">==</span><span class="c-tx"> target:</span></span></div>
+          <div class="hl-br"><span class="ln">5</span><span><span class="c-tx">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="c-fn">print</span><span class="c-tx">(</span><span class="c-str">f"Found at {i}"</span><span class="c-tx">)</span></span></div>
+          <div class="hl-br"><span class="ln">6</span><span><span class="c-tx">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="c-kw">break</span></span></div>
+          <div class="hl-el"><span class="ln">7</span><span><span class="c-tx">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="c-kw">else</span><span class="c-op">:</span><span class="c-tx">  </span><span class="c-cm"># no break hit = not found</span></span></div>
+          <div class="hl-el"><span class="ln">8</span><span><span class="c-tx">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="c-fn">print</span><span class="c-tx">(</span><span class="c-str">"Not in list"</span><span class="c-tx">)</span></span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <hr class="divider">
+
+  <!-- ════ NESTED ════ -->
+  <section id="nested">
+    <div class="section-meta"><span class="section-num">08</span><span class="section-tag">Nested loops</span></div>
+    <h2 class="section-title">Nested Loops</h2>
+    <p class="section-desc">A loop inside a loop. Each iteration of the outer loop triggers <em>all</em> iterations of the inner loop. Great for 2D data, matrices, and coordinate pairs.</p>
+
+    <div class="two-col">
+      <div>
+        <div class="col-head">Multiplication table</div>
+        <div class="code-block">
+          <div class="line"><span class="ln">1</span><span><span class="c-kw">for</span><span class="c-tx"> i </span><span class="c-kw">in</span><span class="c-tx"> </span><span class="c-fn">range</span><span class="c-tx">(</span><span class="c-num">1</span><span class="c-tx">, </span><span class="c-num">4</span><span class="c-tx">):  </span><span class="c-cm"># outer</span></span></div>
+          <div class="hl-for"><span class="ln">2</span><span><span class="c-tx">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="c-kw">for</span><span class="c-tx"> j </span><span class="c-kw">in</span><span class="c-tx"> </span><span class="c-fn">range</span><span class="c-tx">(</span><span class="c-num">1</span><span class="c-tx">, </span><span class="c-num">4</span><span class="c-tx">):  </span><span class="c-cm"># inner</span></span></div>
+          <div class="hl-for"><span class="ln">3</span><span><span class="c-tx">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="c-fn">print</span><span class="c-tx">(i </span><span class="c-op">*</span><span class="c-tx"> j, end</span><span class="c-op">=</span><span class="c-str">" "</span><span class="c-tx">)</span></span></div>
+          <div class="line"><span class="ln">4</span><span><span class="c-tx">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="c-fn">print</span><span class="c-tx">()  </span><span class="c-cm"># new line after each row</span></span></div>
+          <div class="line"><span class="ln">5</span><span><span class="c-cm"># 1 2 3</span></span></div>
+          <div class="line"><span class="ln">6</span><span><span class="c-cm"># 2 4 6</span></span></div>
+          <div class="line"><span class="ln">7</span><span><span class="c-cm"># 3 6 9</span></span></div>
+        </div>
+      </div>
+      <div>
+        <div class="col-head">break in nested loops</div>
+        <div class="code-block">
+          <div class="line"><span class="ln">1</span><span><span class="c-cm"># break only exits the NEAREST loop</span></span></div>
+          <div class="line"><span class="ln">2</span><span><span class="c-kw">for</span><span class="c-tx"> i </span><span class="c-kw">in</span><span class="c-tx"> </span><span class="c-fn">range</span><span class="c-tx">(</span><span class="c-num">3</span><span class="c-tx">):  </span><span class="c-cm"># outer keeps going</span></span></div>
+          <div class="line"><span class="ln">3</span><span><span class="c-tx">&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="c-kw">for</span><span class="c-tx"> j </span><span class="c-kw">in</span><span class="c-tx"> </span><span class="c-fn">range</span><span class="c-tx">(</span><span class="c-num">3</span><span class="c-tx">):</span></span></div>
+          <div class="hl-br"><span class="ln">4</span><span><span class="c-tx">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="c-kw">if</span><span class="c-tx"> j </span><span class="c-op">==</span><span class="c-tx"> </span><span class="c-num">1</span><span class="c-op">:</span><span class="c-tx"> </span><span class="c-kw">break</span><span class="c-tx">  </span><span class="c-cm"># inner only</span></span></div>
+          <div class="line"><span class="ln">5</span><span><span class="c-tx">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="c-fn">print</span><span class="c-tx">(i, j)</span></span></div>
+          <div class="line"><span class="ln">6</span><span><span class="c-cm"># 0 0 / 1 0 / 2 0</span></span></div>
+        </div>
+        <div class="callout" style="margin-top:12px">
+          <strong>Key rule:</strong> <code>break</code> and <code>continue</code> always apply to the <strong>innermost</strong> enclosing loop only.
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- ── CHEATSHEET ── -->
+<div class="wrapper">
+  <div class="cheatsheet">
+    <div class="cs-title">Quick Reference — Python Loops</div>
+    <div class="cs-grid">
+      <div class="cs-box">
+        <div class="cs-label" style="color:#60a5fa">for loop</div>
+        <div class="cs-code">for x in iterable:<br>&nbsp;&nbsp;&nbsp;&nbsp;body<br><br>for i, v in enumerate(lst):<br>for k, v in d.items():</div>
+      </div>
+      <div class="cs-box">
+        <div class="cs-label" style="color:#34d399">while loop</div>
+        <div class="cs-code">while condition:<br>&nbsp;&nbsp;&nbsp;&nbsp;body<br>&nbsp;&nbsp;&nbsp;&nbsp;update_variable<br><br>while True:  # + break to exit</div>
+      </div>
+      <div class="cs-box">
+        <div class="cs-label" style="color:#fde68a">range()</div>
+        <div class="cs-code">range(n)          # 0..n-1<br>range(a, b)       # a..b-1<br>range(a, b, step)<br>range(5, 0, -1)   # countdown</div>
+      </div>
+      <div class="cs-box">
+        <div class="cs-label" style="color:#fb7185">break &amp; continue</div>
+        <div class="cs-code">break     # exit loop NOW<br>continue  # skip this iteration<br><br># both affect nearest loop only</div>
+        <div class="cs-note">break → stop everything | continue → skip &amp; go next</div>
+      </div>
+      <div class="cs-box">
+        <div class="cs-label" style="color:#c084fc">else clause</div>
+        <div class="cs-code">for x in lst:<br>&nbsp;&nbsp;&nbsp;&nbsp;if found: break<br>else:<br>&nbsp;&nbsp;&nbsp;&nbsp;# ran without break</div>
+        <div class="cs-note">else runs only if no break was hit</div>
+      </div>
+      <div class="cs-box">
+        <div class="cs-label" style="color:#fbbf24">nested loops</div>
+        <div class="cs-code">for i in range(3):<br>&nbsp;&nbsp;&nbsp;&nbsp;for j in range(3):<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;print(i, j)<br><br># inner runs fully each outer step</div>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <div>Python Loops — Lesson 05 of the Python course</div>
+    <div class="mono">next → Dictionaries &amp; Sets</div>
+  </footer>
+</div>
+
+</body>
+</html>

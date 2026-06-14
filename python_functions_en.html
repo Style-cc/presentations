@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Python Functions</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0e1a;
+    --surface: #111827;
+    --surface2: #1a2235;
+    --accent: #34d399;
+    --fn:   #34d399;   /* green — functions */
+    --arg:  #60a5fa;   /* blue  — arguments */
+    --ret:  #f97316;   /* orange — return */
+    --lam:  #e879f9;   /* pink  — lambda */
+    --scop: #fbbf24;   /* yellow — scope */
+    --green: #00ffa3;
+    --yellow: #ffd60a;
+    --pink: #ff4d94;
+    --blue: #60a5fa;
+    --purple: #c084fc;
+    --text: #e2e8f0;
+    --muted: #64748b;
+    --border: rgba(255,255,255,0.07);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { width: 100%; height: 100%; overflow: hidden; background: var(--bg); font-family: 'Syne', sans-serif; color: var(--text); }
+
+  .deck { width: 100vw; height: 100vh; position: relative; }
+  .slide {
+    position: absolute; inset: 0;
+    display: flex; flex-direction: column; justify-content: center; align-items: center;
+    padding: 60px 80px;
+    opacity: 0; transform: translateY(30px);
+    transition: opacity .45s ease, transform .45s ease;
+    pointer-events: none;
+  }
+  .slide.active { opacity: 1; transform: translateY(0); pointer-events: all; }
+  .slide.out    { opacity: 0; transform: translateY(-30px); }
+
+  .ui-bar {
+    position: fixed; bottom: 32px; left: 50%; transform: translateX(-50%);
+    display: flex; align-items: center; gap: 20px; z-index: 100;
+    background: rgba(17,24,39,0.88); backdrop-filter: blur(12px);
+    border: 0.5px solid var(--border); border-radius: 999px; padding: 10px 24px;
+  }
+  .ui-bar button { background: none; border: none; color: var(--muted); cursor: pointer; font-size: 18px; padding: 4px 8px; border-radius: 6px; transition: color .2s; }
+  .ui-bar button:hover { color: var(--accent); }
+  .progress-dots { display: flex; gap: 6px; }
+  .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--muted); transition: all .3s; cursor: pointer; }
+  .dot.active { background: var(--accent); width: 22px; border-radius: 3px; }
+  .counter { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--muted); min-width: 42px; text-align: center; }
+
+  .bg-grid {
+    position: fixed; inset: 0; pointer-events: none; z-index: 0;
+    background-image: linear-gradient(var(--border) 1px, transparent 1px),
+                      linear-gradient(90deg, var(--border) 1px, transparent 1px);
+    background-size: 60px 60px;
+    mask-image: radial-gradient(ellipse 80% 80% at 50% 50%, black 20%, transparent 100%);
+  }
+  .slide > * { position: relative; z-index: 1; }
+
+  /* ── HERO ── */
+  .hero-label { font-family: 'JetBrains Mono', monospace; font-size: 13px; color: var(--accent); letter-spacing: .15em; margin-bottom: 20px; text-transform: uppercase; }
+  .hero-title { font-size: clamp(60px, 8vw, 96px); font-weight: 800; line-height: 1; text-align: center; margin-bottom: 26px; background: linear-gradient(135deg,#fff 30%,var(--fn) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+  .hero-chips { display: flex; gap: 10px; margin-bottom: 26px; flex-wrap: wrap; justify-content: center; }
+  .chip { font-family: 'JetBrains Mono', monospace; font-size: 13px; padding: 7px 16px; border-radius: 999px; border: 1px solid; font-weight: 600; }
+  .chip-fn  { color: var(--fn);   border-color: rgba(52,211,153,.4);  background: rgba(52,211,153,.07); }
+  .chip-arg { color: var(--arg);  border-color: rgba(96,165,250,.4);  background: rgba(96,165,250,.07); }
+  .chip-ret { color: var(--ret);  border-color: rgba(249,115,22,.4);  background: rgba(249,115,22,.07); }
+  .chip-lam { color: var(--lam);  border-color: rgba(232,121,249,.4); background: rgba(232,121,249,.07); }
+  .chip-sc  { color: var(--scop); border-color: rgba(251,191,36,.4);  background: rgba(251,191,36,.07); }
+  .hero-desc { font-size: 17px; color: var(--muted); text-align: center; max-width: 500px; line-height: 1.7; }
+  .glow-circle { position: absolute; width: 600px; height: 600px; border-radius: 50%; background: radial-gradient(circle,rgba(52,211,153,.08) 0%,transparent 70%); top:50%; left:50%; transform:translate(-50%,-50%); pointer-events:none; }
+
+  /* ── SLIDE HEADER ── */
+  .slide-header { position: absolute; top: 40px; left: 80px; display: flex; align-items: center; gap: 14px; }
+  .slide-num { font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: .1em; border: 1px solid; border-radius: 4px; padding: 3px 8px; }
+  .sn-fn  { color: var(--fn);   border-color: rgba(52,211,153,.4); }
+  .sn-arg { color: var(--arg);  border-color: rgba(96,165,250,.4); }
+  .sn-ret { color: var(--ret);  border-color: rgba(249,115,22,.4); }
+  .sn-lam { color: var(--lam);  border-color: rgba(232,121,249,.4);}
+  .sn-sc  { color: var(--scop); border-color: rgba(251,191,36,.4); }
+  .sn-sum { color: var(--accent);border-color: rgba(52,211,153,.4);}
+  .slide-topic { font-size: 13px; color: var(--muted); letter-spacing: .05em; }
+
+  /* ── TYPOGRAPHY ── */
+  .stitle { font-size: clamp(28px, 3.5vw, 42px); font-weight: 800; margin-bottom: 8px; }
+  .hlf  { color: var(--fn); }
+  .hla  { color: var(--arg); }
+  .hlr  { color: var(--ret); }
+  .hll  { color: var(--lam); }
+  .hls  { color: var(--scop); }
+  .sdesc { font-size: 15px; color: var(--muted); margin-bottom: 20px; line-height: 1.7; max-width: 960px; }
+
+  /* ── CODE ── */
+  .codeblock {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 14px;
+    padding: 20px 28px; font-family: 'JetBrains Mono', monospace; font-size: 13.5px;
+    line-height: 1.9; width: 100%; max-width: 1000px;
+  }
+  .codeblock.sm { font-size: 13px; padding: 16px 22px; }
+  .line { display: flex; gap: 20px; }
+  .ln  { color: #334155; min-width: 22px; text-align: right; user-select: none; }
+  .kw  { color: var(--purple); }
+  .str { color: var(--green); }
+  .num { color: var(--yellow); }
+  .fn  { color: var(--blue); }
+  .cm  { color: #475569; font-style: italic; }
+  .op  { color: var(--accent); }
+  .hl-fn  { background: rgba(52,211,153,.06);  border-left: 2px solid var(--fn);   margin:0 -28px; padding:0 26px; }
+  .hl-arg { background: rgba(96,165,250,.06);  border-left: 2px solid var(--arg);  margin:0 -28px; padding:0 26px; }
+  .hl-ret { background: rgba(249,115,22,.06);  border-left: 2px solid var(--ret);  margin:0 -28px; padding:0 26px; }
+  .hl-lam { background: rgba(232,121,249,.06); border-left: 2px solid var(--lam);  margin:0 -28px; padding:0 26px; }
+  .hl-sc  { background: rgba(251,191,36,.06);  border-left: 2px solid var(--scop); margin:0 -28px; padding:0 26px; }
+  .hl-p   { background: rgba(255,77,148,.06);  border-left: 2px solid var(--pink); margin:0 -28px; padding:0 26px; }
+
+  /* ── LAYOUTS ── */
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; width: 100%; max-width: 1000px; }
+  .col-lbl { font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: .1em; text-transform: uppercase; margin-bottom: 10px; }
+
+  /* ── ANATOMY ── */
+  .anatomy {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 14px;
+    padding: 24px 28px; font-family: 'JetBrains Mono', monospace; font-size: 14px;
+    line-height: 2; width: 100%; max-width: 1000px; margin-bottom: 20px; position: relative;
+  }
+  .ann { position: relative; display: inline; }
+  .ann-fn  { color: var(--fn);   }
+  .ann-kw  { color: var(--purple); }
+  .ann-arg { color: var(--arg);  }
+  .ann-ret { color: var(--ret);  }
+  .ann-str { color: var(--green);}
+  .ann-num { color: var(--yellow);}
+  .ann-cm  { color: #475569; font-style:italic; }
+  .ann-row { margin-bottom: 2px; }
+
+  .legend { display: flex; gap: 20px; flex-wrap: wrap; margin-top: 4px; }
+  .leg-item { display: flex; align-items: center; gap: 7px; font-size: 13px; color: var(--muted); }
+  .leg-dot  { width: 10px; height: 10px; border-radius: 50%; }
+
+  /* ── RESULT ROWS ── */
+  .rrows { display: flex; flex-direction: column; gap: 7px; width: 100%; max-width: 1000px; }
+  .rrow { display: flex; align-items: center; gap: 14px; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 10px 18px; font-family: 'JetBrains Mono', monospace; font-size: 13px; }
+  .rrow .expr { min-width: 230px; }
+  .rrow .arrow { color: var(--muted); }
+  .rrow .val { color: var(--green); flex: 1; }
+  .rtag { font-size: 11px; border-radius: 4px; padding: 2px 8px; white-space: nowrap; font-family: 'Syne', sans-serif; font-weight: 600; }
+  .tf { background: rgba(52,211,153,.12);  color: var(--fn); }
+  .ta { background: rgba(96,165,250,.12);  color: var(--arg); }
+  .tr { background: rgba(249,115,22,.12);  color: var(--ret); }
+  .tl { background: rgba(232,121,249,.12); color: var(--lam); }
+  .ts { background: rgba(251,191,36,.12);  color: var(--scop); }
+
+  /* ── ARG CARDS ── */
+  .arg-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; width: 100%; max-width: 1000px; }
+  .acard { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+  .acard-head { padding: 10px 16px; display: flex; align-items: center; gap: 10px; }
+  .acard-kw   { font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 700; color: var(--arg); }
+  .acard-name { font-size: 12px; color: var(--muted); }
+  .acard-body { padding: 0 16px 14px; }
+
+  /* ── SCOPE VISUAL ── */
+  .scope-wrap { display: flex; flex-direction: column; gap: 0; width: 100%; max-width: 1000px; }
+  .scope-box { border: 1px solid; border-radius: 12px; padding: 16px 20px; position: relative; }
+  .scope-label { font-size: 11px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; margin-bottom: 8px; font-family: 'Syne', sans-serif; }
+  .scope-global { border-color: rgba(251,191,36,.4); background: rgba(251,191,36,.04); margin-bottom: 10px; }
+  .scope-local  { border-color: rgba(52,211,153,.4); background: rgba(52,211,153,.04); margin: 0 30px; }
+  .scope-var { font-family: 'JetBrains Mono', monospace; font-size: 13px; margin: 3px 0; }
+
+  /* ── FEATURE CARDS ── */
+  .cards4 { display: grid; grid-template-columns: repeat(4,1fr); gap: 14px; width: 100%; max-width: 1000px; }
+  .fcard { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 20px 16px; }
+  .fcard-icon  { font-size: 26px; margin-bottom: 10px; }
+  .fcard-title { font-size: 15px; font-weight: 700; margin-bottom: 6px; }
+  .fcard-desc  { font-size: 12.5px; color: var(--muted); line-height: 1.6; }
+
+  /* ── NOTE ── */
+  .note-box { background: rgba(52,211,153,.07); border: 1px solid rgba(52,211,153,.25); border-radius: 12px; padding: 14px 18px; width: 100%; max-width: 1000px; margin-top: 14px; }
+  .note-lbl { font-size: 12px; color: var(--fn); font-weight: 700; margin-bottom: 5px; letter-spacing: .05em; }
+  .note-txt { font-size: 13px; color: var(--muted); line-height: 1.6; }
+
+  /* ── SUMMARY ── */
+  .sum6 { display: grid; grid-template-columns: repeat(3,1fr); gap: 13px; width: 100%; max-width: 1000px; }
+  .scard { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 20px 16px; border-top: 2px solid; }
+  .scard-kw   { font-family: 'JetBrains Mono', monospace; font-size: 14px; font-weight: 700; margin-bottom: 8px; }
+  .scard-desc { font-size: 12.5px; color: var(--muted); line-height: 1.6; }
+</style>
+</head>
+<body>
+<div class="bg-grid"></div>
+<div class="deck" id="deck">
+
+  <!-- ══ SLIDE 1 — TITLE ══ -->
+  <div class="slide active" data-slide="0">
+    <div class="glow-circle"></div>
+    <div class="hero-label">Python · Lesson 7</div>
+    <h1 class="hero-title">Functions</h1>
+    <div class="hero-chips">
+      <span class="chip chip-fn">def</span>
+      <span class="chip chip-arg">arguments</span>
+      <span class="chip chip-ret">return</span>
+      <span class="chip chip-lam">lambda</span>
+      <span class="chip chip-sc">scope</span>
+    </div>
+    <p class="hero-desc">Functions are the building blocks of every program. Write once, reuse anywhere. Code becomes cleaner, shorter, and easier to read.</p>
+  </div>
+
+  <!-- ══ SLIDE 2 — WHAT IS A FUNCTION ══ -->
+  <div class="slide" data-slide="1">
+    <div class="slide-header"><span class="slide-num sn-fn">01</span><span class="slide-topic">Basics</span></div>
+    <h2 class="stitle">What is a <span class="hlf">Function</span>?</h2>
+    <p class="sdesc">A function is a named block of code that only runs when called. It receives data, processes it, and returns a result.</p>
+    <div class="cards4">
+      <div class="fcard" style="border-top:2px solid var(--fn)">
+        <div class="fcard-icon">♻️</div>
+        <div class="fcard-title">Reusability</div>
+        <div class="fcard-desc">Write once — call as many times as needed, from anywhere</div>
+      </div>
+      <div class="fcard" style="border-top:2px solid var(--arg)">
+        <div class="fcard-icon">📦</div>
+        <div class="fcard-title">Encapsulation</div>
+        <div class="fcard-desc">Hides implementation details. Only the input and output are visible from the outside</div>
+      </div>
+      <div class="fcard" style="border-top:2px solid var(--ret)">
+        <div class="fcard-icon">📖</div>
+        <div class="fcard-title">Readability</div>
+        <div class="fcard-desc">Code with functions reads like plain text: calculate_tax(), send_email()</div>
+      </div>
+      <div class="fcard" style="border-top:2px solid var(--lam)">
+        <div class="fcard-icon">🐛</div>
+        <div class="fcard-title">Debugging</div>
+        <div class="fcard-desc">Easier to find and fix a bug inside an isolated function</div>
+      </div>
+    </div>
+    <div class="codeblock" style="margin-top:18px">
+      <div class="line"><span class="ln">1</span><span><span class="cm"># Define (once)</span></span></div>
+      <div class="line hl-fn"><span class="ln">2</span><span><span class="kw">def</span> <span class="fn">greet</span>(name)<span class="op">:</span></span></div>
+      <div class="line hl-fn"><span class="ln">3</span><span>&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">return</span> <span class="str">f"Hello, {name}!"</span></span></div>
+      <div class="line"><span class="ln">4</span></div>
+      <div class="line"><span class="ln">5</span><span><span class="cm"># Call (as many times as you like)</span></span></div>
+      <div class="line"><span class="ln">6</span><span><span class="fn">greet</span>(<span class="str">"Alice"</span>)  <span class="cm"># → "Hello, Alice!"</span></span></div>
+      <div class="line"><span class="ln">7</span><span><span class="fn">greet</span>(<span class="str">"Bob"</span>)    <span class="cm"># → "Hello, Bob!"</span></span></div>
+    </div>
+  </div>
+
+  <!-- ══ SLIDE 3 — ANATOMY ══ -->
+  <div class="slide" data-slide="2">
+    <div class="slide-header"><span class="slide-num sn-fn">02</span><span class="slide-topic">Function anatomy</span></div>
+    <h2 class="stitle">Anatomy of a <span class="hlf">Function</span></h2>
+    <p class="sdesc">Every part of a function has a purpose. Let's break it down element by element.</p>
+    <div class="anatomy">
+      <div class="ann-row"><span class="ann-kw">def</span> <span class="ann-fn">calculate_area</span>(<span class="ann-arg">width</span>, <span class="ann-arg">height</span> <span class="ann-cm">= 1</span>)<span style="color:var(--accent)">:</span></div>
+      <div class="ann-row">&nbsp;&nbsp;&nbsp;&nbsp;<span class="ann-str">"""Calculates the area of a rectangle."""</span></div>
+      <div class="ann-row">&nbsp;&nbsp;&nbsp;&nbsp;area = <span class="ann-arg">width</span> * <span class="ann-arg">height</span></div>
+      <div class="ann-row">&nbsp;&nbsp;&nbsp;&nbsp;<span class="ann-ret" style="color:var(--purple)">return</span> <span class="ann-ret" style="color:var(--ret)">area</span></div>
+    </div>
+    <div class="legend" style="margin-bottom:18px">
+      <div class="leg-item"><div class="leg-dot" style="background:var(--purple)"></div><span>def — keyword</span></div>
+      <div class="leg-item"><div class="leg-dot" style="background:var(--fn)"></div><span>calculate_area — function name</span></div>
+      <div class="leg-item"><div class="leg-dot" style="background:var(--arg)"></div><span>width, height — parameters</span></div>
+      <div class="leg-item"><div class="leg-dot" style="background:var(--green)"></div><span>docstring — description</span></div>
+      <div class="leg-item"><div class="leg-dot" style="background:var(--ret)"></div><span>return — return value</span></div>
+    </div>
+    <div class="rrows">
+      <div class="rrow"><span class="expr" style="color:var(--fn)">calculate_area(5, 3)</span><span class="arrow">→</span><span class="val">15</span><span class="rtag tf">both arguments</span></div>
+      <div class="rrow"><span class="expr" style="color:var(--fn)">calculate_area(5)</span><span class="arrow">→</span><span class="val">5</span><span class="rtag ta">height = 1 by default</span></div>
+    </div>
+  </div>
+
+  <!-- ══ SLIDE 4 — ARGUMENTS ══ -->
+  <div class="slide" data-slide="3">
+    <div class="slide-header"><span class="slide-num sn-arg">03</span><span class="slide-topic">Arguments</span></div>
+    <h2 class="stitle">Types of <span class="hla">Arguments</span></h2>
+    <p class="sdesc">Python supports several types of arguments — from required positional to an arbitrary number.</p>
+    <div class="arg-grid">
+      <div class="acard" style="border-color:rgba(96,165,250,.3)">
+        <div class="acard-head" style="background:rgba(96,165,250,.06)">
+          <span class="acard-kw">Positional</span>
+          <span class="acard-name">— required, passed in order</span>
+        </div>
+        <div class="acard-body">
+          <div class="codeblock sm" style="margin-top:8px">
+            <div class="line"><span class="ln">1</span><span><span class="kw">def</span> <span class="fn">add</span>(a, b)<span class="op">:</span></span></div>
+            <div class="line hl-arg"><span class="ln">2</span><span>&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">return</span> a <span class="op">+</span> b</span></div>
+            <div class="line"><span class="ln">3</span><span><span class="fn">add</span>(<span class="num">3</span>, <span class="num">4</span>)   <span class="cm"># → 7</span></span></div>
+          </div>
+        </div>
+      </div>
+      <div class="acard" style="border-color:rgba(96,165,250,.3)">
+        <div class="acard-head" style="background:rgba(96,165,250,.06)">
+          <span class="acard-kw">Default</span>
+          <span class="acard-name">— used when not provided</span>
+        </div>
+        <div class="acard-body">
+          <div class="codeblock sm" style="margin-top:8px">
+            <div class="line"><span class="ln">1</span><span><span class="kw">def</span> <span class="fn">power</span>(n, exp<span class="op">=</span><span class="num">2</span>)<span class="op">:</span></span></div>
+            <div class="line hl-arg"><span class="ln">2</span><span>&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">return</span> n <span class="op">**</span> exp</span></div>
+            <div class="line"><span class="ln">3</span><span><span class="fn">power</span>(<span class="num">3</span>)     <span class="cm"># → 9  (exp=2)</span></span></div>
+            <div class="line"><span class="ln">4</span><span><span class="fn">power</span>(<span class="num">2</span>, <span class="num">10</span>) <span class="cm"># → 1024</span></span></div>
+          </div>
+        </div>
+      </div>
+      <div class="acard" style="border-color:rgba(96,165,250,.3)">
+        <div class="acard-head" style="background:rgba(96,165,250,.06)">
+          <span class="acard-kw">*args</span>
+          <span class="acard-name">— any number of arguments</span>
+        </div>
+        <div class="acard-body">
+          <div class="codeblock sm" style="margin-top:8px">
+            <div class="line"><span class="ln">1</span><span><span class="kw">def</span> <span class="fn">total</span>(<span class="op">*</span>nums)<span class="op">:</span></span></div>
+            <div class="line hl-arg"><span class="ln">2</span><span>&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">return</span> <span class="fn">sum</span>(nums)</span></div>
+            <div class="line"><span class="ln">3</span><span><span class="fn">total</span>(<span class="num">1</span>,<span class="num">2</span>,<span class="num">3</span>,<span class="num">4</span>) <span class="cm"># → 10</span></span></div>
+            <div class="line"><span class="ln">4</span><span><span class="cm"># nums = (1, 2, 3, 4)</span></span></div>
+          </div>
+        </div>
+      </div>
+      <div class="acard" style="border-color:rgba(96,165,250,.3)">
+        <div class="acard-head" style="background:rgba(96,165,250,.06)">
+          <span class="acard-kw">**kwargs</span>
+          <span class="acard-name">— keyword arguments</span>
+        </div>
+        <div class="acard-body">
+          <div class="codeblock sm" style="margin-top:8px">
+            <div class="line"><span class="ln">1</span><span><span class="kw">def</span> <span class="fn">info</span>(<span class="op">**</span>data)<span class="op">:</span></span></div>
+            <div class="line hl-arg"><span class="ln">2</span><span>&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">for</span> k,v <span class="kw">in</span> data.items()<span class="op">:</span></span></div>
+            <div class="line hl-arg"><span class="ln">3</span><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="fn">print</span>(k, v)</span></div>
+            <div class="line"><span class="ln">4</span><span><span class="fn">info</span>(name=<span class="str">"Ali"</span>, age=<span class="num">20</span>)</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ SLIDE 5 — RETURN ══ -->
+  <div class="slide" data-slide="4">
+    <div class="slide-header"><span class="slide-num sn-ret">04</span><span class="slide-topic">return</span></div>
+    <h2 class="stitle">The <span class="hlr">return</span> Statement</h2>
+    <p class="sdesc"><code style="font-family:'JetBrains Mono';color:var(--ret)">return</code> exits the function and sends a value back to the caller. A function without return returns <code style="font-family:'JetBrains Mono';color:var(--muted)">None</code>.</p>
+    <div class="two-col">
+      <div>
+        <div class="col-lbl" style="color:var(--ret)">return variants</div>
+        <div class="codeblock sm">
+          <div class="line"><span class="ln">1</span><span><span class="cm"># Return a single value</span></span></div>
+          <div class="line hl-ret"><span class="ln">2</span><span><span class="kw">def</span> <span class="fn">square</span>(x)<span class="op">:</span></span></div>
+          <div class="line hl-ret"><span class="ln">3</span><span>&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">return</span> x <span class="op">**</span> <span class="num">2</span></span></div>
+          <div class="line"><span class="ln">4</span></div>
+          <div class="line"><span class="ln">5</span><span><span class="cm"># Return multiple values (tuple)</span></span></div>
+          <div class="line hl-ret"><span class="ln">6</span><span><span class="kw">def</span> <span class="fn">min_max</span>(lst)<span class="op">:</span></span></div>
+          <div class="line hl-ret"><span class="ln">7</span><span>&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">return</span> <span class="fn">min</span>(lst), <span class="fn">max</span>(lst)</span></div>
+          <div class="line"><span class="ln">8</span></div>
+          <div class="line"><span class="ln">9</span><span>lo, hi = <span class="fn">min_max</span>([<span class="num">3</span>,<span class="num">1</span>,<span class="num">5</span>])</span></div>
+          <div class="line"><span class="ln">10</span><span><span class="cm"># lo=1, hi=5</span></span></div>
+        </div>
+      </div>
+      <div>
+        <div class="col-lbl" style="color:var(--ret)">Early exit</div>
+        <div class="codeblock sm">
+          <div class="line"><span class="ln">1</span><span><span class="cm"># return exits the function immediately</span></span></div>
+          <div class="line"><span class="ln">2</span><span><span class="kw">def</span> <span class="fn">find_first_even</span>(lst)<span class="op">:</span></span></div>
+          <div class="line"><span class="ln">3</span><span>&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">for</span> n <span class="kw">in</span> lst<span class="op">:</span></span></div>
+          <div class="line hl-ret"><span class="ln">4</span><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">if</span> n <span class="op">%</span> <span class="num">2</span> <span class="op">==</span> <span class="num">0</span><span class="op">:</span></span></div>
+          <div class="line hl-ret"><span class="ln">5</span><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">return</span> n  <span class="cm"># exits immediately</span></span></div>
+          <div class="line"><span class="ln">6</span><span>&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">return</span> <span class="kw">None</span>  <span class="cm"># nothing found</span></span></div>
+          <div class="line"><span class="ln">7</span></div>
+          <div class="line"><span class="ln">8</span><span><span class="fn">find_first_even</span>([<span class="num">1</span>,<span class="num">3</span>,<span class="num">4</span>,<span class="num">6</span>])  <span class="cm"># → 4</span></span></div>
+        </div>
+        <div class="note-box" style="margin-top:12px">
+          <div class="note-lbl">💡 None</div>
+          <div class="note-txt">If a function does not explicitly return anything — Python automatically returns <code style="font-family:'JetBrains Mono'">None</code>.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ SLIDE 6 — SCOPE ══ -->
+  <div class="slide" data-slide="5">
+    <div class="slide-header"><span class="slide-num sn-sc">05</span><span class="slide-topic">Scope</span></div>
+    <h2 class="stitle">Scope — <span class="hls">scope</span></h2>
+    <p class="sdesc">Variables inside a function only exist there. They are not accessible from outside. This is called <strong style="color:var(--scop)">local scope</strong>.</p>
+    <div class="two-col">
+      <div>
+        <div class="scope-wrap">
+          <div class="scope-box scope-global">
+            <div class="scope-label" style="color:var(--scop)">🌍 Global scope</div>
+            <div class="scope-var" style="color:var(--scop)">x = 10</div>
+            <div class="scope-var" style="color:var(--scop)">name = "World"</div>
+            <div class="scope-box scope-local" style="margin-top:10px">
+              <div class="scope-label" style="color:var(--fn)">🏠 Local (inside function)</div>
+              <div class="scope-var" style="color:var(--fn)">y = 20  <span style="color:var(--muted);font-size:11px"># local only</span></div>
+              <div class="scope-var" style="color:var(--fn)">result = x + y  <span style="color:var(--muted);font-size:11px"># x is visible!</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div>
+        <div class="codeblock sm">
+          <div class="line"><span class="ln">1</span><span>x = <span class="num">10</span>  <span class="cm"># global</span></span></div>
+          <div class="line"><span class="ln">2</span></div>
+          <div class="line"><span class="ln">3</span><span><span class="kw">def</span> <span class="fn">my_func</span>()<span class="op">:</span></span></div>
+          <div class="line hl-fn"><span class="ln">4</span><span>&nbsp;&nbsp;&nbsp;&nbsp;y = <span class="num">20</span>  <span class="cm"># local</span></span></div>
+          <div class="line hl-fn"><span class="ln">5</span><span>&nbsp;&nbsp;&nbsp;&nbsp;<span class="fn">print</span>(x)  <span class="cm"># ✓ visible from outside</span></span></div>
+          <div class="line hl-fn"><span class="ln">6</span><span>&nbsp;&nbsp;&nbsp;&nbsp;<span class="fn">print</span>(y)  <span class="cm"># ✓ local variable</span></span></div>
+          <div class="line"><span class="ln">7</span></div>
+          <div class="line hl-p"><span class="ln">8</span><span><span class="fn">print</span>(y)  <span class="cm"># ✗ NameError!</span></span></div>
+          <div class="line"><span class="ln">9</span></div>
+          <div class="line"><span class="ln">10</span><span><span class="cm"># global — modify the global variable</span></span></div>
+          <div class="line hl-sc"><span class="ln">11</span><span><span class="kw">def</span> <span class="fn">inc</span>()<span class="op">:</span></span></div>
+          <div class="line hl-sc"><span class="ln">12</span><span>&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">global</span> x</span></div>
+          <div class="line hl-sc"><span class="ln">13</span><span>&nbsp;&nbsp;&nbsp;&nbsp;x <span class="op">+=</span> <span class="num">1</span></span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ SLIDE 7 — LAMBDA ══ -->
+  <div class="slide" data-slide="6">
+    <div class="slide-header"><span class="slide-num sn-lam">06</span><span class="slide-topic">Lambda</span></div>
+    <h2 class="stitle">Lambda <span class="hll">Functions</span></h2>
+    <p class="sdesc">An anonymous one-line function. No name, no code block. Used where a function is needed just once — typically as an argument.</p>
+    <div class="two-col">
+      <div>
+        <div class="col-lbl" style="color:var(--lam)">Syntax</div>
+        <div class="codeblock sm">
+          <div class="line"><span class="ln">1</span><span><span class="cm"># lambda arguments: expression</span></span></div>
+          <div class="line hl-lam"><span class="ln">2</span><span>square = <span class="kw">lambda</span> x<span class="op">:</span> x <span class="op">**</span> <span class="num">2</span></span></div>
+          <div class="line"><span class="ln">3</span><span>square(<span class="num">5</span>)  <span class="cm"># → 25</span></span></div>
+          <div class="line"><span class="ln">4</span></div>
+          <div class="line"><span class="ln">5</span><span><span class="cm"># Equivalent to:</span></span></div>
+          <div class="line"><span class="ln">6</span><span><span class="kw">def</span> <span class="fn">square</span>(x)<span class="op">:</span></span></div>
+          <div class="line"><span class="ln">7</span><span>&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">return</span> x <span class="op">**</span> <span class="num">2</span></span></div>
+          <div class="line"><span class="ln">8</span></div>
+          <div class="line"><span class="ln">9</span><span><span class="cm"># Multiple arguments</span></span></div>
+          <div class="line hl-lam"><span class="ln">10</span><span>add = <span class="kw">lambda</span> a, b<span class="op">:</span> a <span class="op">+</span> b</span></div>
+        </div>
+      </div>
+      <div>
+        <div class="col-lbl" style="color:var(--lam)">Where to use — with sort, map, filter</div>
+        <div class="codeblock sm">
+          <div class="line"><span class="ln">1</span><span>words = [<span class="str">"banana"</span>, <span class="str">"apple"</span>, <span class="str">"fig"</span>]</span></div>
+          <div class="line"><span class="ln">2</span></div>
+          <div class="line"><span class="ln">3</span><span><span class="cm"># Sort by word length</span></span></div>
+          <div class="line hl-lam"><span class="ln">4</span><span>words.sort(key=<span class="kw">lambda</span> w<span class="op">:</span> <span class="fn">len</span>(w))</span></div>
+          <div class="line"><span class="ln">5</span><span><span class="cm"># → ['fig', 'apple', 'banana']</span></span></div>
+          <div class="line"><span class="ln">6</span></div>
+          <div class="line"><span class="ln">7</span><span><span class="cm"># map — apply to each element</span></span></div>
+          <div class="line hl-lam"><span class="ln">8</span><span><span class="fn">list</span>(<span class="fn">map</span>(<span class="kw">lambda</span> x<span class="op">:</span> x<span class="op">*</span><span class="num">2</span>, [<span class="num">1</span>,<span class="num">2</span>,<span class="num">3</span>]))</span></div>
+          <div class="line"><span class="ln">9</span><span><span class="cm"># → [2, 4, 6]</span></span></div>
+          <div class="line"><span class="ln">10</span></div>
+          <div class="line"><span class="ln">11</span><span><span class="cm"># filter — filter elements</span></span></div>
+          <div class="line hl-lam"><span class="ln">12</span><span><span class="fn">list</span>(<span class="fn">filter</span>(<span class="kw">lambda</span> x<span class="op">:</span> x<span class="op">%</span><span class="num">2</span><span class="op">==</span><span class="num">0</span>, [<span class="num">1</span>,<span class="num">2</span>,<span class="num">3</span>,<span class="num">4</span>]))</span></div>
+          <div class="line"><span class="ln">13</span><span><span class="cm"># → [2, 4]</span></span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ SLIDE 8 — DOCSTRINGS & TYPE HINTS ══ -->
+  <div class="slide" data-slide="7">
+    <div class="slide-header"><span class="slide-num sn-fn">07</span><span class="slide-topic">Documentation</span></div>
+    <h2 class="stitle">Docstrings &amp; <span class="hlf">Type Hints</span></h2>
+    <p class="sdesc">Good code explains itself. A docstring describes what a function does. Type hints annotate the argument and return value types.</p>
+    <div class="two-col">
+      <div>
+        <div class="col-lbl" style="color:var(--fn)">Docstring</div>
+        <div class="codeblock sm">
+          <div class="line"><span class="ln">1</span><span><span class="kw">def</span> <span class="fn">divide</span>(a, b)<span class="op">:</span></span></div>
+          <div class="line hl-fn"><span class="ln">2</span><span>&nbsp;&nbsp;&nbsp;&nbsp;<span class="str">"""</span></span></div>
+          <div class="line hl-fn"><span class="ln">3</span><span>&nbsp;&nbsp;&nbsp;&nbsp;<span class="str">Divides a by b.</span></span></div>
+          <div class="line hl-fn"><span class="ln">4</span><span><span class="str">&nbsp;&nbsp;&nbsp;&nbsp;Args: a (int), b (int)</span></span></div>
+          <div class="line hl-fn"><span class="ln">5</span><span><span class="str">&nbsp;&nbsp;&nbsp;&nbsp;Returns: float</span></span></div>
+          <div class="line hl-fn"><span class="ln">6</span><span><span class="str">&nbsp;&nbsp;&nbsp;&nbsp;Raises: ZeroDivisionError</span></span></div>
+          <div class="line hl-fn"><span class="ln">7</span><span>&nbsp;&nbsp;&nbsp;&nbsp;<span class="str">"""</span></span></div>
+          <div class="line"><span class="ln">8</span><span>&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">if</span> b <span class="op">==</span> <span class="num">0</span><span class="op">:</span></span></div>
+          <div class="line"><span class="ln">9</span><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">raise</span> ValueError(<span class="str">"b cannot be 0"</span>)</span></div>
+          <div class="line"><span class="ln">10</span><span>&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">return</span> a / b</span></div>
+        </div>
+      </div>
+      <div>
+        <div class="col-lbl" style="color:var(--fn)">Type hints — Python 3.5+</div>
+        <div class="codeblock sm">
+          <div class="line"><span class="ln">1</span><span><span class="cm"># Arguments: annotate type with :</span></span></div>
+          <div class="line"><span class="ln">2</span><span><span class="cm"># # Return type: after -></span></span></div>
+          <div class="line hl-fn"><span class="ln">3</span><span><span class="kw">def</span> <span class="fn">greet</span>(name<span class="op">:</span> <span class="fn">str</span>) <span class="op">-></span> <span class="fn">str</span><span class="op">:</span></span></div>
+          <div class="line hl-fn"><span class="ln">4</span><span>&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">return</span> <span class="str">f"Hello, {name}!"</span></span></div>
+          <div class="line"><span class="ln">5</span></div>
+          <div class="line hl-fn"><span class="ln">6</span><span><span class="kw">def</span> <span class="fn">add</span>(a<span class="op">:</span> <span class="fn">int</span>, b<span class="op">:</span> <span class="fn">int</span>) <span class="op">-></span> <span class="fn">int</span><span class="op">:</span></span></div>
+          <div class="line hl-fn"><span class="ln">7</span><span>&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">return</span> a <span class="op">+</span> b</span></div>
+          <div class="line"><span class="ln">8</span></div>
+          <div class="line hl-fn"><span class="ln">9</span><span><span class="kw">def</span> <span class="fn">items</span>(lst<span class="op">:</span> <span class="fn">list</span>) <span class="op">-></span> <span class="fn">None</span><span class="op">:</span></span></div>
+          <div class="line hl-fn"><span class="ln">10</span><span>&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">for</span> x <span class="kw">in</span> lst<span class="op">:</span> <span class="fn">print</span>(x)</span></div>
+        </div>
+        <div class="note-box" style="margin-top:12px">
+          <div class="note-lbl">💡 Type hints are optional</div>
+          <div class="note-txt">Python does not enforce types at runtime. Hints are documentation for the developer and tooling (IDE, mypy).</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ SLIDE 9 — PRACTICAL ══ -->
+  <div class="slide" data-slide="8">
+    <div class="slide-header"><span class="slide-num sn-fn">08</span><span class="slide-topic">Practice</span></div>
+    <h2 class="stitle">Real-World <span class="hlf">Examples</span></h2>
+    <p class="sdesc">Functions in action — patterns used in real-world code every day.</p>
+    <div class="two-col">
+      <div>
+        <div class="codeblock sm">
+          <div class="line"><span class="ln">1</span><span><span class="cm"># Validation with early return</span></span></div>
+          <div class="line hl-fn"><span class="ln">2</span><span><span class="kw">def</span> <span class="fn">validate_age</span>(age<span class="op">:</span> <span class="fn">int</span>) <span class="op">-></span> <span class="fn">bool</span><span class="op">:</span></span></div>
+          <div class="line"><span class="ln">3</span><span>&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">if</span> <span class="kw">not</span> <span class="fn">isinstance</span>(age, <span class="fn">int</span>)<span class="op">:</span></span></div>
+          <div class="line"><span class="ln">4</span><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">return</span> <span class="kw">False</span></span></div>
+          <div class="line"><span class="ln">5</span><span>&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">return</span> <span class="num">0</span> <span class="op">&lt;=</span> age <span class="op">&lt;=</span> <span class="num">120</span></span></div>
+          <div class="line"><span class="ln">6</span></div>
+          <div class="line"><span class="ln">7</span><span><span class="cm"># Word frequency using dict</span></span></div>
+          <div class="line hl-fn"><span class="ln">8</span><span><span class="kw">def</span> <span class="fn">word_count</span>(text<span class="op">:</span> <span class="fn">str</span>) <span class="op">-></span> <span class="fn">dict</span><span class="op">:</span></span></div>
+          <div class="line"><span class="ln">9</span><span>&nbsp;&nbsp;&nbsp;&nbsp;freq = {}</span></div>
+          <div class="line"><span class="ln">10</span><span>&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">for</span> w <span class="kw">in</span> text.split()<span class="op">:</span></span></div>
+          <div class="line"><span class="ln">11</span><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;freq[w] = freq.get(w, <span class="num">0</span>) <span class="op">+</span> <span class="num">1</span></span></div>
+          <div class="line"><span class="ln">12</span><span>&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">return</span> freq</span></div>
+        </div>
+      </div>
+      <div>
+        <div class="codeblock sm">
+          <div class="line"><span class="ln">1</span><span><span class="cm"># Function with *args and **kwargs</span></span></div>
+          <div class="line hl-arg"><span class="ln">2</span><span><span class="kw">def</span> <span class="fn">log</span>(msg, <span class="op">*</span>tags, level<span class="op">=</span><span class="str">"INFO"</span>, <span class="op">**</span>meta)<span class="op">:</span></span></div>
+          <div class="line"><span class="ln">3</span><span>&nbsp;&nbsp;&nbsp;&nbsp;<span class="fn">print</span>(<span class="str">f"[{level}] {msg}"</span>)</span></div>
+          <div class="line"><span class="ln">4</span><span>&nbsp;&nbsp;&nbsp;&nbsp;<span class="fn">print</span>(<span class="str">"tags:"</span>, tags)</span></div>
+          <div class="line"><span class="ln">5</span><span>&nbsp;&nbsp;&nbsp;&nbsp;<span class="fn">print</span>(<span class="str">"meta:"</span>, meta)</span></div>
+          <div class="line"><span class="ln">6</span></div>
+          <div class="line"><span class="ln">7</span><span><span class="fn">log</span>(<span class="str">"Error"</span>, <span class="str">"db"</span>, <span class="str">"sql"</span>,</span></div>
+          <div class="line"><span class="ln">8</span><span>&nbsp;&nbsp;&nbsp;&nbsp;level=<span class="str">"ERROR"</span>, user=<span class="str">"Ali"</span>)</span></div>
+          <div class="line"><span class="ln">9</span><span><span class="cm"># [ERROR] Error</span></span></div>
+          <div class="line"><span class="ln">10</span><span><span class="cm"># tags: ('db', 'sql')</span></span></div>
+          <div class="line"><span class="ln">11</span><span><span class="cm"># meta: {'user': 'Ali'}</span></span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ SLIDE 10 — SUMMARY ══ -->
+  <div class="slide" data-slide="9">
+    <div class="glow-circle"></div>
+    <div class="slide-header"><span class="slide-num sn-sum">09</span><span class="slide-topic">Summary</span></div>
+    <h2 class="stitle" style="text-align:center;margin-bottom:8px">Summary: <span class="hlf">what we learned</span></h2>
+    <p class="sdesc" style="text-align:center;margin-bottom:20px">Key concepts from this lesson</p>
+    <div class="sum6">
+      <div class="scard" style="border-top-color:var(--fn)">
+        <div class="scard-kw" style="color:var(--fn)">def</div>
+        <div class="scard-desc">Define a function with the def keyword. Body is an indented block. Call it with its name and parentheses.</div>
+      </div>
+      <div class="scard" style="border-top-color:var(--arg)">
+        <div class="scard-kw" style="color:var(--arg)">Arguments</div>
+        <div class="scard-desc">Positional, default, *args (tuple), **kwargs (dict) — four types.</div>
+      </div>
+      <div class="scard" style="border-top-color:var(--ret)">
+        <div class="scard-kw" style="color:var(--ret)">return</div>
+        <div class="scard-desc">Returns a value. You can return multiple values as a tuple. No return → None.</div>
+      </div>
+      <div class="scard" style="border-top-color:var(--scop)">
+        <div class="scard-kw" style="color:var(--scop)">Scope</div>
+        <div class="scard-desc">Local variables are only visible inside the function. global allows modifying a global.</div>
+      </div>
+      <div class="scard" style="border-top-color:var(--lam)">
+        <div class="scard-kw" style="color:var(--lam)">lambda</div>
+        <div class="scard-desc">Anonymous one-line function. Perfect for sort(key=), map(), filter().</div>
+      </div>
+      <div class="scard" style="border-top-color:var(--fn)">
+        <div class="scard-kw" style="color:var(--fn)">→ Next</div>
+        <div class="scard-desc">Modules and packages. Classes and OOP. Decorators and higher-order functions.</div>
+      </div>
+    </div>
+    <div class="codeblock sm" style="margin-top:16px">
+      <div class="line"><span class="ln">1</span><span><span class="kw">def</span> <span class="fn">greet</span>(name<span class="op">:</span> <span class="fn">str</span>, greeting<span class="op">=</span><span class="str">"Hello"</span>) <span class="op">-></span> <span class="fn">str</span><span class="op">:</span></span></div>
+      <div class="line"><span class="ln">2</span><span>&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">return</span> <span class="str">f"{greeting}, {name}!"</span></span></div>
+      <div class="line"><span class="ln">3</span><span>shout = <span class="kw">lambda</span> s<span class="op">:</span> s.upper() <span class="op">+</span> <span class="str">"!!!"</span></span></div>
+      <div class="line"><span class="ln">4</span><span>shout(<span class="fn">greet</span>(<span class="str">"Alice"</span>))  <span class="cm"># → "HELLO, ALICE!!!"</span></span></div>
+    </div>
+  </div>
+
+</div>
+
+<div class="ui-bar">
+  <button onclick="go(-1)">←</button>
+  <div class="progress-dots" id="dots"></div>
+  <span class="counter" id="counter">1 / 10</span>
+  <button onclick="go(1)">→</button>
+</div>
+
+<script>
+  const slides = document.querySelectorAll('.slide');
+  const dotsEl = document.getElementById('dots');
+  const counterEl = document.getElementById('counter');
+  let cur = 0;
+
+  slides.forEach((_, i) => {
+    const d = document.createElement('div');
+    d.className = 'dot' + (i === 0 ? ' active' : '');
+    d.onclick = () => goTo(i);
+    dotsEl.appendChild(d);
+  });
+
+  function goTo(n) {
+    slides[cur].classList.remove('active');
+    slides[cur].classList.add('out');
+    setTimeout(() => slides[cur].classList.remove('out'), 450);
+    cur = (n + slides.length) % slides.length;
+    slides[cur].classList.add('active');
+    document.querySelectorAll('.dot').forEach((d, i) => d.classList.toggle('active', i === cur));
+    counterEl.textContent = (cur + 1) + ' / ' + slides.length;
+  }
+
+  function go(dir) { goTo(cur + dir); }
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') { e.preventDefault(); go(1); }
+    if (e.key === 'ArrowLeft'  || e.key === 'ArrowUp') { e.preventDefault(); go(-1); }
+  });
+</script>
+</body>
+</html>
