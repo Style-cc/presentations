@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Python Tkinter — GUI Programming</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0e1a;
+    --surface: #111827;
+    --surface2: #1a2235;
+    --accent: #818cf8;   /* indigo — tkinter theme */
+    --tk:    #818cf8;    /* main indigo */
+    --tk2:   #6366f1;    /* darker indigo */
+    --green: #00ffa3;
+    --yellow: #ffd60a;
+    --pink: #f472b6;
+    --blue: #60a5fa;
+    --purple: #c084fc;
+    --teal: #2dd4bf;
+    --text: #e2e8f0;
+    --muted: #64748b;
+    --border: rgba(255,255,255,0.07);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { width: 100%; height: 100%; overflow: hidden; background: var(--bg); font-family: 'Syne', sans-serif; color: var(--text); }
+
+  .deck { width: 100vw; height: 100vh; position: relative; }
+  .slide {
+    position: absolute; inset: 0;
+    display: flex; flex-direction: column; justify-content: center; align-items: center;
+    padding: 60px 80px;
+    opacity: 0; transform: translateY(30px);
+    transition: opacity .45s ease, transform .45s ease;
+    pointer-events: none;
+  }
+  .slide.active { opacity: 1; transform: translateY(0); pointer-events: all; }
+  .slide.out    { opacity: 0; transform: translateY(-30px); }
+
+  .ui-bar {
+    position: fixed; bottom: 32px; left: 50%; transform: translateX(-50%);
+    display: flex; align-items: center; gap: 20px; z-index: 100;
+    background: rgba(17,24,39,0.88); backdrop-filter: blur(12px);
+    border: 0.5px solid var(--border); border-radius: 999px; padding: 10px 24px;
+  }
+  .ui-bar button { background: none; border: none; color: var(--muted); cursor: pointer; font-size: 18px; padding: 4px 8px; border-radius: 6px; transition: color .2s; }
+  .ui-bar button:hover { color: var(--accent); }
+  .progress-dots { display: flex; gap: 6px; }
+  .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--muted); transition: all .3s; cursor: pointer; }
+  .dot.active { background: var(--accent); width: 22px; border-radius: 3px; }
+  .counter { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--muted); min-width: 42px; text-align: center; }
+
+  .bg-grid {
+    position: fixed; inset: 0; pointer-events: none; z-index: 0;
+    background-image: linear-gradient(var(--border) 1px, transparent 1px),
+                      linear-gradient(90deg, var(--border) 1px, transparent 1px);
+    background-size: 60px 60px;
+    mask-image: radial-gradient(ellipse 80% 80% at 50% 50%, black 20%, transparent 100%);
+  }
+  .slide > * { position: relative; z-index: 1; }
+
+  /* ── HERO ── */
+  .hero-label { font-family: 'JetBrains Mono', monospace; font-size: 13px; color: var(--accent); letter-spacing: .15em; margin-bottom: 20px; text-transform: uppercase; }
+  .hero-title { font-size: clamp(56px, 8vw, 96px); font-weight: 800; line-height: 1; text-align: center; margin-bottom: 24px; background: linear-gradient(135deg,#fff 30%,var(--tk) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+  .hero-chips { display: flex; gap: 10px; margin-bottom: 26px; flex-wrap: wrap; justify-content: center; }
+  .chip { font-family: 'JetBrains Mono', monospace; font-size: 12px; padding: 6px 14px; border-radius: 999px; border: 1px solid; font-weight: 600; }
+  .c-tk   { color: var(--tk);    border-color: rgba(129,140,248,.4);  background: rgba(129,140,248,.07); }
+  .c-gr   { color: var(--green); border-color: rgba(0,255,163,.4);    background: rgba(0,255,163,.07); }
+  .c-pk   { color: var(--pink);  border-color: rgba(244,114,182,.4);  background: rgba(244,114,182,.07); }
+  .c-tl   { color: var(--teal);  border-color: rgba(45,212,191,.4);   background: rgba(45,212,191,.07); }
+  .hero-desc { font-size: 17px; color: var(--muted); text-align: center; max-width: 520px; line-height: 1.7; }
+  .glow-circle { position: absolute; width: 600px; height: 600px; border-radius: 50%; background: radial-gradient(circle,rgba(129,140,248,.08) 0%,transparent 70%); top:50%; left:50%; transform:translate(-50%,-50%); pointer-events:none; }
+
+  /* ── SLIDE HEADER ── */
+  .slide-header { position: absolute; top: 40px; left: 80px; display: flex; align-items: center; gap: 14px; }
+  .slide-num { font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: .1em; border: 1px solid; border-radius: 4px; padding: 3px 8px; }
+  .sn-tk { color: var(--tk);    border-color: rgba(129,140,248,.4); }
+  .sn-gr { color: var(--green); border-color: rgba(0,255,163,.4); }
+  .sn-pk { color: var(--pink);  border-color: rgba(244,114,182,.4); }
+  .sn-tl { color: var(--teal);  border-color: rgba(45,212,191,.4); }
+  .sn-yw { color: var(--yellow);border-color: rgba(255,214,10,.4); }
+  .slide-topic { font-size: 13px; color: var(--muted); letter-spacing: .05em; }
+
+  /* ── TYPOGRAPHY ── */
+  .stitle { font-size: clamp(26px, 3.5vw, 40px); font-weight: 800; margin-bottom: 8px; }
+  .htk { color: var(--tk); }
+  .hgr { color: var(--green); }
+  .hpk { color: var(--pink); }
+  .htl { color: var(--teal); }
+  .hyw { color: var(--yellow); }
+  .sdesc { font-size: 14.5px; color: var(--muted); margin-bottom: 20px; line-height: 1.7; max-width: 960px; }
+
+  /* ── CODE ── */
+  .codeblock {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 14px;
+    padding: 18px 26px; font-family: 'JetBrains Mono', monospace; font-size: 13px;
+    line-height: 1.85; width: 100%; max-width: 1000px;
+  }
+  .codeblock.sm { font-size: 12.5px; padding: 14px 20px; }
+  .line { display: flex; gap: 18px; }
+  .ln  { color: #334155; min-width: 20px; text-align: right; user-select: none; }
+  .kw  { color: var(--purple); }
+  .str { color: var(--green); }
+  .num { color: var(--yellow); }
+  .fn  { color: var(--blue); }
+  .cm  { color: #475569; font-style: italic; }
+  .op  { color: var(--accent); }
+  .cls { color: var(--teal); }
+  .hl-tk { background: rgba(129,140,248,.06); border-left: 2px solid var(--tk);    margin:0 -26px; padding:0 24px; }
+  .hl-gr { background: rgba(0,255,163,.06);   border-left: 2px solid var(--green); margin:0 -26px; padding:0 24px; }
+  .hl-pk { background: rgba(244,114,182,.06); border-left: 2px solid var(--pink);  margin:0 -26px; padding:0 24px; }
+  .hl-tl { background: rgba(45,212,191,.06);  border-left: 2px solid var(--teal);  margin:0 -26px; padding:0 24px; }
+  .hl-yw { background: rgba(255,214,10,.06);  border-left: 2px solid var(--yellow);margin:0 -26px; padding:0 24px; }
+
+  /* ── LAYOUTS ── */
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; width: 100%; max-width: 1000px; }
+  .col-lbl { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--muted); letter-spacing: .1em; text-transform: uppercase; margin-bottom: 10px; }
+
+  /* ── WIDGET CARDS ── */
+  .widget-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 12px; width: 100%; max-width: 1000px; }
+  .wcard {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 12px; padding: 16px 14px; text-align: center;
+    transition: transform .2s, border-color .2s;
+  }
+  .wcard:hover { transform: translateY(-3px); border-color: rgba(129,140,248,.4); }
+  .wcard-icon { font-size: 26px; margin-bottom: 8px; }
+  .wcard-name { font-family: 'JetBrains Mono', monospace; font-size: 13px; color: var(--tk); font-weight: 700; margin-bottom: 4px; }
+  .wcard-desc { font-size: 12px; color: var(--muted); line-height: 1.5; }
+
+  /* ── MOCK WINDOW ── */
+  .mock-win {
+    background: #2d2d2d; border-radius: 10px; overflow: hidden;
+    border: 1px solid #444; width: 100%; max-width: 420px;
+    box-shadow: 0 20px 60px rgba(0,0,0,.5);
+  }
+  .mock-titlebar {
+    background: #3a3a3a; padding: 10px 16px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .mock-dot { width: 12px; height: 12px; border-radius: 50%; }
+  .mock-body { padding: 20px; display: flex; flex-direction: column; gap: 10px; }
+  .mock-label { font-size: 13px; color: #ccc; font-family: 'JetBrains Mono', monospace; }
+  .mock-entry { background: #1e1e1e; border: 1px solid #555; border-radius: 4px; padding: 7px 10px; font-family: 'JetBrains Mono', monospace; font-size: 13px; color: #a3e635; }
+  .mock-btn { background: #5b6af3; color: white; border: none; border-radius: 5px; padding: 9px 18px; font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 600; cursor: pointer; text-align: center; }
+  .mock-btn.grey { background: #444; }
+  .mock-out { background: #111; border: 1px solid #333; border-radius: 4px; padding: 8px 10px; font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #6ee7b7; }
+  .mock-row { display: flex; gap: 10px; }
+
+  /* ── RESULT ROWS ── */
+  .rrows { display: flex; flex-direction: column; gap: 7px; width: 100%; max-width: 1000px; }
+  .rrow { display: flex; align-items: center; gap: 14px; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 10px 18px; font-family: 'JetBrains Mono', monospace; font-size: 12.5px; }
+  .rrow .expr { min-width: 160px; color: var(--tk); font-weight: 700; }
+  .rrow .arrow { color: var(--muted); }
+  .rrow .val   { color: var(--green); flex: 1; }
+  .rtag { font-size: 11px; border-radius: 4px; padding: 2px 8px; white-space: nowrap; font-family: 'Syne', sans-serif; font-weight: 600; }
+  .ttk  { background: rgba(129,140,248,.12); color: var(--tk); }
+  .tgr  { background: rgba(0,255,163,.12);   color: var(--green); }
+  .tpk  { background: rgba(244,114,182,.12); color: var(--pink); }
+
+  /* ── NOTE ── */
+  .note-box { background: rgba(129,140,248,.07); border: 1px solid rgba(129,140,248,.25); border-radius: 12px; padding: 13px 18px; width: 100%; max-width: 1000px; margin-top: 14px; }
+  .note-box.green { background: rgba(0,255,163,.06); border-color: rgba(0,255,163,.25); }
+  .note-box.yellow { background: rgba(255,214,10,.06); border-color: rgba(255,214,10,.25); }
+  .note-lbl { font-size: 12px; font-weight: 700; margin-bottom: 5px; letter-spacing: .05em; color: var(--tk); }
+  .note-box.green .note-lbl  { color: var(--green); }
+  .note-box.yellow .note-lbl { color: var(--yellow); }
+  .note-txt { font-size: 13px; color: var(--muted); line-height: 1.6; }
+
+  /* ── LAYOUT CARDS ── */
+  .layout-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 16px; width: 100%; max-width: 1000px; }
+  .lcard { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+  .lcard-head { padding: 12px 16px; font-family: 'JetBrains Mono', monospace; font-size: 14px; font-weight: 700; }
+  .lcard-body { padding: 12px 16px; font-size: 13px; color: var(--muted); line-height: 1.6; }
+  .lh-pk   { background: rgba(244,114,182,.08); color: var(--pink);   border-bottom: 1px solid rgba(244,114,182,.2); }
+  .lh-tl   { background: rgba(45,212,191,.08);  color: var(--teal);   border-bottom: 1px solid rgba(45,212,191,.2); }
+  .lh-yw   { background: rgba(255,214,10,.08);  color: var(--yellow); border-bottom: 1px solid rgba(255,214,10,.2); }
+
+  /* ── SUMMARY ── */
+  .sum6 { display: grid; grid-template-columns: repeat(3,1fr); gap: 13px; width: 100%; max-width: 1000px; }
+  .scard { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 20px 16px; border-top: 2px solid; }
+  .scard-kw   { font-family: 'JetBrains Mono', monospace; font-size: 14px; font-weight: 700; margin-bottom: 8px; }
+  .scard-desc { font-size: 12.5px; color: var(--muted); line-height: 1.6; }
+</style>
+</head>
+<body>
+<div class="bg-grid"></div>
+<div class="deck" id="deck">
+
+  <!-- ══ SLIDE 1 — TITLE ══ -->
+  <div class="slide active" data-slide="0">
+    <div class="glow-circle"></div>
+    <div class="hero-label">Python · Lesson 8 · GUI</div>
+    <h1 class="hero-title">Tkinter 🖼️</h1>
+    <div class="hero-chips">
+      <span class="chip c-tk">GUI Windows</span>
+      <span class="chip c-gr">Buttons &amp; Labels</span>
+      <span class="chip c-pk">Events &amp; Clicks</span>
+      <span class="chip c-tl">Layouts</span>
+      <span class="chip c-tk">Entry &amp; Input</span>
+    </div>
+    <p class="hero-desc">Tkinter is Python's built-in library for creating desktop windows and graphical interfaces — no installation needed, works on Windows, Mac, and Linux.</p>
+  </div>
+
+  <!-- ══ SLIDE 2 — WHAT IS TKINTER ══ -->
+  <div class="slide" data-slide="1">
+    <div class="slide-header"><span class="slide-num sn-tk">01</span><span class="slide-topic">Introduction</span></div>
+    <h2 class="stitle">What is <span class="htk">Tkinter</span>?</h2>
+    <p class="sdesc">Tkinter lets you build real desktop apps with windows, buttons, text boxes, and more — all using pure Python. It's already installed with Python, no pip needed.</p>
+    <div class="two-col">
+      <div>
+        <div class="col-lbl" style="color:var(--tk)">Why Tkinter?</div>
+        <div class="rrows">
+          <div class="rrow"><span class="expr">Built-in</span><span class="arrow">→</span><span class="val">No installation needed — comes with Python</span></div>
+          <div class="rrow"><span class="expr">Simple</span><span class="arrow">→</span><span class="val">Beginner-friendly, easy to learn</span></div>
+          <div class="rrow"><span class="expr">Cross-platform</span><span class="arrow">→</span><span class="val">Works on Windows, Mac, Linux</span></div>
+          <div class="rrow"><span class="expr">Real windows</span><span class="arrow">→</span><span class="val">Creates actual desktop GUI apps</span></div>
+          <div class="rrow"><span class="expr">Great for learning</span><span class="arrow">→</span><span class="val">Perfect intro to GUI programming</span></div>
+        </div>
+      </div>
+      <div>
+        <div class="col-lbl" style="color:var(--tk)">Your first window</div>
+        <div class="codeblock sm">
+          <div class="line"><span class="ln">1</span><span><span class="kw">import</span> tkinter <span class="kw">as</span> tk</span></div>
+          <div class="line"><span class="ln">2</span><span>&nbsp;</span></div>
+          <div class="line"><span class="ln">3</span><span><span class="cm"># Create the main window</span></span></div>
+          <div class="line hl-tk"><span class="ln">4</span><span>window <span class="op">=</span> tk.<span class="cls">Tk</span>()</span></div>
+          <div class="line"><span class="ln">5</span><span>&nbsp;</span></div>
+          <div class="line"><span class="ln">6</span><span><span class="cm"># Set window title and size</span></span></div>
+          <div class="line hl-tk"><span class="ln">7</span><span>window.title(<span class="str">"My First App"</span>)</span></div>
+          <div class="line hl-tk"><span class="ln">8</span><span>window.geometry(<span class="str">"400x300"</span>)</span></div>
+          <div class="line"><span class="ln">9</span><span>&nbsp;</span></div>
+          <div class="line"><span class="ln">10</span><span><span class="cm"># Start the event loop — ALWAYS last!</span></span></div>
+          <div class="line hl-gr"><span class="ln">11</span><span>window.mainloop()</span></div>
+        </div>
+        <div class="note-box" style="margin-top:10px">
+          <div class="note-lbl">💡 mainloop()</div>
+          <div class="note-txt">This keeps the window open and listens for user actions. Without it, the window opens and closes instantly.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ SLIDE 3 — WIDGETS OVERVIEW ══ -->
+  <div class="slide" data-slide="2">
+    <div class="slide-header"><span class="slide-num sn-tk">02</span><span class="slide-topic">Widgets</span></div>
+    <h2 class="stitle">Meet the <span class="htk">Widgets</span></h2>
+    <p class="sdesc">A widget is any element you place inside a window — a button, a text label, an input box. These are the building blocks of every GUI.</p>
+    <div class="widget-grid">
+      <div class="wcard"><div class="wcard-icon">🏷️</div><div class="wcard-name">Label</div><div class="wcard-desc">Show text or an image on screen</div></div>
+      <div class="wcard"><div class="wcard-icon">🔲</div><div class="wcard-name">Button</div><div class="wcard-desc">Clickable button that runs a function</div></div>
+      <div class="wcard"><div class="wcard-icon">✏️</div><div class="wcard-name">Entry</div><div class="wcard-desc">Single-line text input field</div></div>
+      <div class="wcard"><div class="wcard-icon">📝</div><div class="wcard-name">Text</div><div class="wcard-desc">Multi-line text area</div></div>
+      <div class="wcard"><div class="wcard-icon">☑️</div><div class="wcard-name">Checkbutton</div><div class="wcard-desc">Checkbox — True or False</div></div>
+      <div class="wcard"><div class="wcard-icon">🔘</div><div class="wcard-name">Radiobutton</div><div class="wcard-desc">Pick one option from a group</div></div>
+      <div class="wcard"><div class="wcard-icon">📋</div><div class="wcard-name">Listbox</div><div class="wcard-desc">Scrollable list of items</div></div>
+      <div class="wcard"><div class="wcard-icon">📦</div><div class="wcard-name">Frame</div><div class="wcard-desc">Container to group widgets together</div></div>
+    </div>
+    <div class="codeblock sm" style="margin-top:16px">
+      <div class="line"><span class="ln">1</span><span><span class="cm"># Every widget follows the same pattern</span></span></div>
+      <div class="line hl-tk"><span class="ln">2</span><span>widget <span class="op">=</span> tk.<span class="cls">WidgetName</span>(parent, option<span class="op">=</span>value, ...)</span></div>
+      <div class="line hl-gr"><span class="ln">3</span><span>widget.pack()   <span class="cm"># make it visible — always add this!</span></span></div>
+    </div>
+  </div>
+
+  <!-- ══ SLIDE 4 — LABEL & BUTTON ══ -->
+  <div class="slide" data-slide="3">
+    <div class="slide-header"><span class="slide-num sn-gr">03</span><span class="slide-topic">Label &amp; Button</span></div>
+    <h2 class="stitle"><span class="hgr">Label</span> and <span class="htk">Button</span></h2>
+    <p class="sdesc">Label displays text. Button runs a function when clicked. Together they form the foundation of every app.</p>
+    <div class="two-col">
+      <div>
+        <div class="codeblock sm">
+          <div class="line"><span class="ln">1</span><span><span class="kw">import</span> tkinter <span class="kw">as</span> tk</span></div>
+          <div class="line"><span class="ln">2</span><span>window <span class="op">=</span> tk.<span class="cls">Tk</span>()</span></div>
+          <div class="line"><span class="ln">3</span><span>window.title(<span class="str">"Hello App"</span>)</span></div>
+          <div class="line"><span class="ln">4</span><span>&nbsp;</span></div>
+          <div class="line"><span class="ln">5</span><span><span class="cm"># Label — shows text</span></span></div>
+          <div class="line hl-gr"><span class="ln">6</span><span>lbl <span class="op">=</span> tk.<span class="cls">Label</span>(window,</span></div>
+          <div class="line hl-gr"><span class="ln">7</span><span>&nbsp;&nbsp;&nbsp;&nbsp;text<span class="op">=</span><span class="str">"Hello, World!"</span>,</span></div>
+          <div class="line hl-gr"><span class="ln">8</span><span>&nbsp;&nbsp;&nbsp;&nbsp;font<span class="op">=</span>(<span class="str">"Arial"</span>, <span class="num">16</span>),</span></div>
+          <div class="line hl-gr"><span class="ln">9</span><span>&nbsp;&nbsp;&nbsp;&nbsp;fg<span class="op">=</span><span class="str">"blue"</span>)</span></div>
+          <div class="line hl-gr"><span class="ln">10</span><span>lbl.pack(pady<span class="op">=</span><span class="num">20</span>)</span></div>
+          <div class="line"><span class="ln">11</span><span>&nbsp;</span></div>
+          <div class="line"><span class="ln">12</span><span><span class="cm"># Button — runs a function on click</span></span></div>
+          <div class="line hl-tk"><span class="ln">13</span><span><span class="kw">def</span> <span class="fn">on_click</span>():</span></div>
+          <div class="line hl-tk"><span class="ln">14</span><span>&nbsp;&nbsp;&nbsp;&nbsp;lbl.config(text<span class="op">=</span><span class="str">"Button clicked! 🎉"</span>)</span></div>
+          <div class="line"><span class="ln">15</span><span>&nbsp;</span></div>
+          <div class="line hl-tk"><span class="ln">16</span><span>btn <span class="op">=</span> tk.<span class="cls">Button</span>(window,</span></div>
+          <div class="line hl-tk"><span class="ln">17</span><span>&nbsp;&nbsp;&nbsp;&nbsp;text<span class="op">=</span><span class="str">"Click me!"</span>,</span></div>
+          <div class="line hl-tk"><span class="ln">18</span><span>&nbsp;&nbsp;&nbsp;&nbsp;command<span class="op">=</span>on_click)</span></div>
+          <div class="line hl-tk"><span class="ln">19</span><span>btn.pack()</span></div>
+          <div class="line"><span class="ln">20</span><span>window.mainloop()</span></div>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:20px">
+        <div class="col-lbl" style="color:var(--green);align-self:flex-start">Result</div>
+        <div class="mock-win">
+          <div class="mock-titlebar">
+            <div class="mock-dot" style="background:#ff5f56"></div>
+            <div class="mock-dot" style="background:#ffbd2e"></div>
+            <div class="mock-dot" style="background:#27c93f"></div>
+            <span style="font-size:12px;color:#aaa;margin-left:8px;font-family:'JetBrains Mono',monospace">Hello App</span>
+          </div>
+          <div class="mock-body" style="align-items:center">
+            <div class="mock-label" style="font-size:18px;color:#60a5fa">Hello, World!</div>
+            <div class="mock-btn">Click me!</div>
+          </div>
+        </div>
+        <div class="note-box" style="max-width:420px">
+          <div class="note-lbl">⚙️ Key options</div>
+          <div class="note-txt">
+            <code style="font-family:'JetBrains Mono';color:var(--tk)">fg</code> = text colour &nbsp;·&nbsp;
+            <code style="font-family:'JetBrains Mono';color:var(--tk)">bg</code> = background<br>
+            <code style="font-family:'JetBrains Mono';color:var(--tk)">font</code> = ("family", size)<br>
+            <code style="font-family:'JetBrains Mono';color:var(--tk)">command</code> = function to call on click
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ SLIDE 5 — ENTRY (INPUT) ══ -->
+  <div class="slide" data-slide="4">
+    <div class="slide-header"><span class="slide-num sn-pk">04</span><span class="slide-topic">Entry — User Input</span></div>
+    <h2 class="stitle">Getting Input with <span class="hpk">Entry</span></h2>
+    <p class="sdesc"><code style="font-family:'JetBrains Mono';color:var(--pink)">Entry</code> is a single-line text box where the user can type. Use <code style="font-family:'JetBrains Mono';color:var(--pink)">.get()</code> to read what they typed.</p>
+    <div class="two-col">
+      <div>
+        <div class="codeblock sm">
+          <div class="line"><span class="ln">1</span><span><span class="kw">import</span> tkinter <span class="kw">as</span> tk</span></div>
+          <div class="line"><span class="ln">2</span><span>window <span class="op">=</span> tk.<span class="cls">Tk</span>()</span></div>
+          <div class="line"><span class="ln">3</span><span>window.title(<span class="str">"Greeter"</span>)</span></div>
+          <div class="line"><span class="ln">4</span><span>&nbsp;</span></div>
+          <div class="line"><span class="ln">5</span><span>tk.<span class="cls">Label</span>(window, text<span class="op">=</span><span class="str">"Your name:"</span>).pack()</span></div>
+          <div class="line"><span class="ln">6</span><span>&nbsp;</span></div>
+          <div class="line"><span class="ln">7</span><span><span class="cm"># Entry widget — text input box</span></span></div>
+          <div class="line hl-pk"><span class="ln">8</span><span>entry <span class="op">=</span> tk.<span class="cls">Entry</span>(window, width<span class="op">=</span><span class="num">25</span>)</span></div>
+          <div class="line hl-pk"><span class="ln">9</span><span>entry.pack(pady<span class="op">=</span><span class="num">5</span>)</span></div>
+          <div class="line"><span class="ln">10</span><span>&nbsp;</span></div>
+          <div class="line"><span class="ln">11</span><span>result_lbl <span class="op">=</span> tk.<span class="cls">Label</span>(window, text<span class="op">=</span><span class="str">""</span>)</span></div>
+          <div class="line"><span class="ln">12</span><span>result_lbl.pack()</span></div>
+          <div class="line"><span class="ln">13</span><span>&nbsp;</span></div>
+          <div class="line"><span class="ln">14</span><span><span class="kw">def</span> <span class="fn">greet</span>():</span></div>
+          <div class="line hl-pk"><span class="ln">15</span><span>&nbsp;&nbsp;&nbsp;&nbsp;name <span class="op">=</span> entry.get()   <span class="cm"># read the input</span></span></div>
+          <div class="line"><span class="ln">16</span><span>&nbsp;&nbsp;&nbsp;&nbsp;result_lbl.config(</span></div>
+          <div class="line"><span class="ln">17</span><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;text<span class="op">=</span><span class="str">f"Hello, {name}! 👋"</span>)</span></div>
+          <div class="line"><span class="ln">18</span><span>&nbsp;</span></div>
+          <div class="line"><span class="ln">19</span><span>tk.<span class="cls">Button</span>(window,</span></div>
+          <div class="line"><span class="ln">20</span><span>&nbsp;&nbsp;&nbsp;&nbsp;text<span class="op">=</span><span class="str">"Greet!"</span>,</span></div>
+          <div class="line"><span class="ln">21</span><span>&nbsp;&nbsp;&nbsp;&nbsp;command<span class="op">=</span>greet).pack(pady<span class="op">=</span><span class="num">5</span>)</span></div>
+          <div class="line"><span class="ln">22</span><span>window.mainloop()</span></div>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:16px">
+        <div class="col-lbl" style="color:var(--pink);align-self:flex-start">Preview</div>
+        <div class="mock-win" style="max-width:320px">
+          <div class="mock-titlebar">
+            <div class="mock-dot" style="background:#ff5f56"></div>
+            <div class="mock-dot" style="background:#ffbd2e"></div>
+            <div class="mock-dot" style="background:#27c93f"></div>
+            <span style="font-size:12px;color:#aaa;margin-left:8px;font-family:'JetBrains Mono',monospace">Greeter</span>
+          </div>
+          <div class="mock-body" style="align-items:center">
+            <div class="mock-label">Your name:</div>
+            <div class="mock-entry" style="width:100%">Alice▌</div>
+            <div class="mock-btn">Greet!</div>
+            <div class="mock-out" style="width:100%;text-align:center">Hello, Alice! 👋</div>
+          </div>
+        </div>
+        <div class="rrows" style="max-width:380px">
+          <div class="rrow"><span class="expr">entry.get()</span><span class="arrow">→</span><span class="val">read typed text</span></div>
+          <div class="rrow"><span class="expr">entry.delete(0, tk.END)</span><span class="arrow">→</span><span class="val">clear the field</span></div>
+          <div class="rrow"><span class="expr">entry.insert(0, "text")</span><span class="arrow">→</span><span class="val">pre-fill with text</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ SLIDE 6 — LAYOUTS ══ -->
+  <div class="slide" data-slide="5">
+    <div class="slide-header"><span class="slide-num sn-tl">05</span><span class="slide-topic">Layouts</span></div>
+    <h2 class="stitle">Placing Widgets — <span class="htl">Layouts</span></h2>
+    <p class="sdesc">After creating a widget you must <em>place</em> it on screen. Tkinter has 3 layout managers — choose the right one for your design.</p>
+    <div class="layout-grid">
+      <div class="lcard">
+        <div class="lcard-head lh-pk">pack()</div>
+        <div class="lcard-body">
+          Stacks widgets one by one, top to bottom (or left/right).<br><br>
+          <code style="font-family:'JetBrains Mono';font-size:11px;color:var(--pink)">btn.pack(side="left")</code><br>
+          <code style="font-family:'JetBrains Mono';font-size:11px;color:var(--pink)">lbl.pack(pady=10)</code><br><br>
+          ✅ Best for simple vertical / horizontal layouts.
+        </div>
+      </div>
+      <div class="lcard">
+        <div class="lcard-head lh-tl">grid()</div>
+        <div class="lcard-body">
+          Places widgets in rows and columns like a table.<br><br>
+          <code style="font-family:'JetBrains Mono';font-size:11px;color:var(--teal)">btn.grid(row=0, col=1)</code><br>
+          <code style="font-family:'JetBrains Mono';font-size:11px;color:var(--teal)">lbl.grid(row=1, col=0)</code><br><br>
+          ✅ Best for forms, login screens, calculators.
+        </div>
+      </div>
+      <div class="lcard">
+        <div class="lcard-head lh-yw">place()</div>
+        <div class="lcard-body">
+          Places widgets at exact pixel coordinates.<br><br>
+          <code style="font-family:'JetBrains Mono';font-size:11px;color:var(--yellow)">btn.place(x=50, y=100)</code><br><br>
+          ⚠️ Harder to maintain — only use when precise positioning is needed.
+        </div>
+      </div>
+    </div>
+    <div class="codeblock sm" style="margin-top:16px">
+      <div class="line"><span class="ln">1</span><span><span class="cm"># grid() example — simple 2-column form</span></span></div>
+      <div class="line hl-tl"><span class="ln">2</span><span>tk.<span class="cls">Label</span>(window, text<span class="op">=</span><span class="str">"Username:"</span>).grid(row<span class="op">=</span><span class="num">0</span>, column<span class="op">=</span><span class="num">0</span>, padx<span class="op">=</span><span class="num">5</span>, pady<span class="op">=</span><span class="num">5</span>)</span></div>
+      <div class="line hl-tl"><span class="ln">3</span><span>tk.<span class="cls">Entry</span>(window).grid(row<span class="op">=</span><span class="num">0</span>, column<span class="op">=</span><span class="num">1</span>)</span></div>
+      <div class="line hl-tl"><span class="ln">4</span><span>tk.<span class="cls">Label</span>(window, text<span class="op">=</span><span class="str">"Password:"</span>).grid(row<span class="op">=</span><span class="num">1</span>, column<span class="op">=</span><span class="num">0</span>, padx<span class="op">=</span><span class="num">5</span>)</span></div>
+      <div class="line hl-tl"><span class="ln">5</span><span>tk.<span class="cls">Entry</span>(window, show<span class="op">=</span><span class="str">"*"</span>).grid(row<span class="op">=</span><span class="num">1</span>, column<span class="op">=</span><span class="num">1</span>)</span></div>
+      <div class="line hl-tl"><span class="ln">6</span><span>tk.<span class="cls">Button</span>(window, text<span class="op">=</span><span class="str">"Login"</span>).grid(row<span class="op">=</span><span class="num">2</span>, column<span class="op">=</span><span class="num">1</span>, pady<span class="op">=</span><span class="num">8</span>)</span></div>
+    </div>
+  </div>
+
+  <!-- ══ SLIDE 7 — EVENTS ══ -->
+  <div class="slide" data-slide="6">
+    <div class="slide-header"><span class="slide-num sn-yw">06</span><span class="slide-topic">Events</span></div>
+    <h2 class="stitle">Handling <span class="hyw">Events</span></h2>
+    <p class="sdesc">An event is anything the user does — click, key press, mouse move. Use <code style="font-family:'JetBrains Mono';color:var(--yellow)">bind()</code> to react to events, or <code style="font-family:'JetBrains Mono';color:var(--yellow)">command=</code> on buttons.</p>
+    <div class="two-col">
+      <div>
+        <div class="col-lbl" style="color:var(--yellow)">Common events</div>
+        <div class="rrows" style="margin-bottom:14px">
+          <div class="rrow"><span class="expr">"&lt;Button-1&gt;"</span><span class="arrow">→</span><span class="val">Left mouse click</span></div>
+          <div class="rrow"><span class="expr">"&lt;Button-3&gt;"</span><span class="arrow">→</span><span class="val">Right mouse click</span></div>
+          <div class="rrow"><span class="expr">"&lt;Return&gt;"</span><span class="arrow">→</span><span class="val">Enter key pressed</span></div>
+          <div class="rrow"><span class="expr">"&lt;KeyPress&gt;"</span><span class="arrow">→</span><span class="val">Any key pressed</span></div>
+          <div class="rrow"><span class="expr">"&lt;Enter&gt;"</span><span class="arrow">→</span><span class="val">Mouse enters widget</span></div>
+          <div class="rrow"><span class="expr">"&lt;Leave&gt;"</span><span class="arrow">→</span><span class="val">Mouse leaves widget</span></div>
+        </div>
+      </div>
+      <div>
+        <div class="col-lbl" style="color:var(--yellow)">bind() examples</div>
+        <div class="codeblock sm">
+          <div class="line"><span class="ln">1</span><span><span class="cm"># Press Enter to submit</span></span></div>
+          <div class="line hl-yw"><span class="ln">2</span><span><span class="kw">def</span> <span class="fn">on_enter</span>(event):</span></div>
+          <div class="line hl-yw"><span class="ln">3</span><span>&nbsp;&nbsp;&nbsp;&nbsp;name <span class="op">=</span> entry.get()</span></div>
+          <div class="line hl-yw"><span class="ln">4</span><span>&nbsp;&nbsp;&nbsp;&nbsp;lbl.config(text<span class="op">=</span><span class="str">f"Hi {name}!"</span>)</span></div>
+          <div class="line"><span class="ln">5</span><span>&nbsp;</span></div>
+          <div class="line hl-yw"><span class="ln">6</span><span>entry.bind(<span class="str">"&lt;Return&gt;"</span>, on_enter)</span></div>
+          <div class="line"><span class="ln">7</span><span>&nbsp;</span></div>
+          <div class="line"><span class="ln">8</span><span><span class="cm"># Hover colour change</span></span></div>
+          <div class="line hl-yw"><span class="ln">9</span><span>btn.bind(<span class="str">"&lt;Enter&gt;"</span>,</span></div>
+          <div class="line hl-yw"><span class="ln">10</span><span>&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">lambda</span> e: btn.config(bg<span class="op">=</span><span class="str">"lightblue"</span>))</span></div>
+          <div class="line hl-yw"><span class="ln">11</span><span>btn.bind(<span class="str">"&lt;Leave&gt;"</span>,</span></div>
+          <div class="line hl-yw"><span class="ln">12</span><span>&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">lambda</span> e: btn.config(bg<span class="op">=</span><span class="str">"SystemButtonFace"</span>))</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="note-box yellow" style="margin-top:8px">
+      <div class="note-lbl">⚡ command= vs bind()</div>
+      <div class="note-txt">Use <code style="font-family:'JetBrains Mono';color:var(--yellow)">command=my_func</code> on Button for clicks — it's simpler. Use <code style="font-family:'JetBrains Mono';color:var(--yellow)">bind("&lt;event&gt;", handler)</code> for keyboard events or when the handler needs the event object.</div>
+    </div>
+  </div>
+
+  <!-- ══ SLIDE 8 — MINI PROJECT ══ -->
+  <div class="slide" data-slide="7">
+    <div class="slide-header"><span class="slide-num sn-gr">07</span><span class="slide-topic">Mini Project</span></div>
+    <h2 class="stitle">Mini Project — <span class="hgr">Simple Calculator</span></h2>
+    <p class="sdesc">Let's put it all together: Entry, Button, Label, grid layout, and event handling — a working calculator!</p>
+    <div class="two-col">
+      <div>
+        <div class="codeblock sm">
+          <div class="line"><span class="ln">1</span><span><span class="kw">import</span> tkinter <span class="kw">as</span> tk</span></div>
+          <div class="line"><span class="ln">2</span><span>window <span class="op">=</span> tk.<span class="cls">Tk</span>()</span></div>
+          <div class="line"><span class="ln">3</span><span>window.title(<span class="str">"Calculator"</span>)</span></div>
+          <div class="line"><span class="ln">4</span><span>&nbsp;</span></div>
+          <div class="line hl-tk"><span class="ln">5</span><span>entry <span class="op">=</span> tk.<span class="cls">Entry</span>(window, width<span class="op">=</span><span class="num">30</span>,</span></div>
+          <div class="line hl-tk"><span class="ln">6</span><span>&nbsp;&nbsp;&nbsp;&nbsp;font<span class="op">=</span>(<span class="str">"Arial"</span>, <span class="num">14</span>), justify<span class="op">=</span><span class="str">"right"</span>)</span></div>
+          <div class="line hl-tk"><span class="ln">7</span><span>entry.grid(row<span class="op">=</span><span class="num">0</span>, column<span class="op">=</span><span class="num">0</span>,</span></div>
+          <div class="line hl-tk"><span class="ln">8</span><span>&nbsp;&nbsp;&nbsp;&nbsp;columnspan<span class="op">=</span><span class="num">4</span>, padx<span class="op">=</span><span class="num">5</span>, pady<span class="op">=</span><span class="num">5</span>)</span></div>
+          <div class="line"><span class="ln">9</span><span>&nbsp;</span></div>
+          <div class="line"><span class="ln">10</span><span><span class="kw">def</span> <span class="fn">press</span>(key):</span></div>
+          <div class="line hl-gr"><span class="ln">11</span><span>&nbsp;&nbsp;&nbsp;&nbsp;entry.insert(tk.END, key)</span></div>
+          <div class="line"><span class="ln">12</span><span>&nbsp;</span></div>
+          <div class="line"><span class="ln">13</span><span><span class="kw">def</span> <span class="fn">calculate</span>():</span></div>
+          <div class="line hl-gr"><span class="ln">14</span><span>&nbsp;&nbsp;&nbsp;&nbsp;result <span class="op">=</span> <span class="fn">eval</span>(entry.get())</span></div>
+          <div class="line hl-gr"><span class="ln">15</span><span>&nbsp;&nbsp;&nbsp;&nbsp;entry.delete(<span class="num">0</span>, tk.END)</span></div>
+          <div class="line hl-gr"><span class="ln">16</span><span>&nbsp;&nbsp;&nbsp;&nbsp;entry.insert(<span class="num">0</span>, result)</span></div>
+          <div class="line"><span class="ln">17</span><span>&nbsp;</span></div>
+          <div class="line"><span class="ln">18</span><span>buttons <span class="op">=</span> [</span></div>
+          <div class="line"><span class="ln">19</span><span>&nbsp;&nbsp;&nbsp;&nbsp;<span class="str">"7"</span>,<span class="str">"8"</span>,<span class="str">"9"</span>,<span class="str">"/"</span>,</span></div>
+          <div class="line"><span class="ln">20</span><span>&nbsp;&nbsp;&nbsp;&nbsp;<span class="str">"4"</span>,<span class="str">"5"</span>,<span class="str">"6"</span>,<span class="str">"*"</span>,</span></div>
+          <div class="line"><span class="ln">21</span><span>&nbsp;&nbsp;&nbsp;&nbsp;<span class="str">"1"</span>,<span class="str">"2"</span>,<span class="str">"3"</span>,<span class="str">"-"</span>,</span></div>
+          <div class="line"><span class="ln">22</span><span>&nbsp;&nbsp;&nbsp;&nbsp;<span class="str">"0"</span>,<span class="str">"."</span>,<span class="str">"="</span>,<span class="str">"+"</span></span></div>
+          <div class="line"><span class="ln">23</span><span>]</span></div>
+          <div class="line"><span class="ln">24</span><span><span class="kw">for</span> i, btn_text <span class="kw">in</span> <span class="fn">enumerate</span>(buttons):</span></div>
+          <div class="line hl-tk"><span class="ln">25</span><span>&nbsp;&nbsp;&nbsp;&nbsp;cmd <span class="op">=</span> calculate <span class="kw">if</span> btn_text<span class="op">==</span><span class="str">"="</span> <span class="kw">else</span> <span class="kw">lambda</span> b<span class="op">=</span>btn_text: press(b)</span></div>
+          <div class="line hl-tk"><span class="ln">26</span><span>&nbsp;&nbsp;&nbsp;&nbsp;tk.<span class="cls">Button</span>(window, text<span class="op">=</span>btn_text, width<span class="op">=</span><span class="num">5</span>,</span></div>
+          <div class="line hl-tk"><span class="ln">27</span><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;command<span class="op">=</span>cmd).grid(row<span class="op">=</span>i<span class="op">//</span><span class="num">4</span><span class="op">+</span><span class="num">1</span>, column<span class="op">=</span>i<span class="op">%</span><span class="num">4</span>, padx<span class="op">=</span><span class="num">2</span>, pady<span class="op">=</span><span class="num">2</span>)</span></div>
+          <div class="line"><span class="ln">28</span><span>window.mainloop()</span></div>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:16px">
+        <div class="mock-win" style="max-width:280px">
+          <div class="mock-titlebar">
+            <div class="mock-dot" style="background:#ff5f56"></div>
+            <div class="mock-dot" style="background:#ffbd2e"></div>
+            <div class="mock-dot" style="background:#27c93f"></div>
+            <span style="font-size:12px;color:#aaa;margin-left:8px;font-family:'JetBrains Mono',monospace">Calculator</span>
+          </div>
+          <div class="mock-body">
+            <div class="mock-entry" style="text-align:right;font-size:16px">12 + 5</div>
+            <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:4px">
+              <div class="mock-btn" style="padding:8px 0;font-size:13px;background:#333">7</div>
+              <div class="mock-btn" style="padding:8px 0;font-size:13px;background:#333">8</div>
+              <div class="mock-btn" style="padding:8px 0;font-size:13px;background:#333">9</div>
+              <div class="mock-btn" style="padding:8px 0;font-size:13px;background:#4a4">÷</div>
+              <div class="mock-btn" style="padding:8px 0;font-size:13px;background:#333">4</div>
+              <div class="mock-btn" style="padding:8px 0;font-size:13px;background:#333">5</div>
+              <div class="mock-btn" style="padding:8px 0;font-size:13px;background:#333">6</div>
+              <div class="mock-btn" style="padding:8px 0;font-size:13px;background:#4a4">×</div>
+              <div class="mock-btn" style="padding:8px 0;font-size:13px;background:#333">1</div>
+              <div class="mock-btn" style="padding:8px 0;font-size:13px;background:#333">2</div>
+              <div class="mock-btn" style="padding:8px 0;font-size:13px;background:#333">3</div>
+              <div class="mock-btn" style="padding:8px 0;font-size:13px;background:#4a4">−</div>
+              <div class="mock-btn" style="padding:8px 0;font-size:13px;background:#333">0</div>
+              <div class="mock-btn" style="padding:8px 0;font-size:13px;background:#333">.</div>
+              <div class="mock-btn" style="padding:8px 0;font-size:13px;background:#5b6af3;grid-column:span 1">=</div>
+              <div class="mock-btn" style="padding:8px 0;font-size:13px;background:#4a4">+</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ SLIDE 9 — MESSAGEBOX & DIALOG ══ -->
+  <div class="slide" data-slide="8">
+    <div class="slide-header"><span class="slide-num sn-pk">08</span><span class="slide-topic">Dialogs</span></div>
+    <h2 class="stitle">Dialogs &amp; <span class="hpk">MessageBox</span></h2>
+    <p class="sdesc">Tkinter has built-in popup dialogs — great for showing messages, warnings, errors, and asking for confirmation.</p>
+    <div class="two-col">
+      <div>
+        <div class="col-lbl" style="color:var(--pink)">messagebox module</div>
+        <div class="codeblock sm">
+          <div class="line"><span class="ln">1</span><span><span class="kw">from</span> tkinter <span class="kw">import</span> messagebox</span></div>
+          <div class="line"><span class="ln">2</span><span>&nbsp;</span></div>
+          <div class="line"><span class="ln">3</span><span><span class="cm"># Information popup</span></span></div>
+          <div class="line hl-pk"><span class="ln">4</span><span>messagebox.showinfo(<span class="str">"Title"</span>, <span class="str">"Hello!"</span>)</span></div>
+          <div class="line"><span class="ln">5</span><span>&nbsp;</span></div>
+          <div class="line"><span class="ln">6</span><span><span class="cm"># Warning popup</span></span></div>
+          <div class="line hl-pk"><span class="ln">7</span><span>messagebox.showwarning(<span class="str">"Oops"</span>, <span class="str">"Try again"</span>)</span></div>
+          <div class="line"><span class="ln">8</span><span>&nbsp;</span></div>
+          <div class="line"><span class="ln">9</span><span><span class="cm"># Error popup</span></span></div>
+          <div class="line hl-pk"><span class="ln">10</span><span>messagebox.showerror(<span class="str">"Error"</span>, <span class="str">"Bad input!"</span>)</span></div>
+          <div class="line"><span class="ln">11</span><span>&nbsp;</span></div>
+          <div class="line"><span class="ln">12</span><span><span class="cm"># Yes / No question → returns True/False</span></span></div>
+          <div class="line hl-pk"><span class="ln">13</span><span>answer <span class="op">=</span> messagebox.askyesno(</span></div>
+          <div class="line hl-pk"><span class="ln">14</span><span>&nbsp;&nbsp;&nbsp;&nbsp;<span class="str">"Confirm"</span>, <span class="str">"Are you sure?"</span>)</span></div>
+          <div class="line"><span class="ln">15</span><span><span class="kw">if</span> answer:</span></div>
+          <div class="line"><span class="ln">16</span><span>&nbsp;&nbsp;&nbsp;&nbsp;<span class="fn">print</span>(<span class="str">"User said Yes"</span>)</span></div>
+        </div>
+      </div>
+      <div>
+        <div class="col-lbl" style="color:var(--teal)">simpledialog — ask for input</div>
+        <div class="codeblock sm">
+          <div class="line"><span class="ln">1</span><span><span class="kw">from</span> tkinter <span class="kw">import</span> simpledialog</span></div>
+          <div class="line"><span class="ln">2</span><span>&nbsp;</span></div>
+          <div class="line"><span class="ln">3</span><span><span class="cm"># Ask for a string</span></span></div>
+          <div class="line hl-tl"><span class="ln">4</span><span>name <span class="op">=</span> simpledialog.askstring(</span></div>
+          <div class="line hl-tl"><span class="ln">5</span><span>&nbsp;&nbsp;&nbsp;&nbsp;<span class="str">"Input"</span>, <span class="str">"What is your name?"</span>)</span></div>
+          <div class="line"><span class="ln">6</span><span>&nbsp;</span></div>
+          <div class="line"><span class="ln">7</span><span><span class="cm"># Ask for an integer</span></span></div>
+          <div class="line hl-tl"><span class="ln">8</span><span>age <span class="op">=</span> simpledialog.askinteger(</span></div>
+          <div class="line hl-tl"><span class="ln">9</span><span>&nbsp;&nbsp;&nbsp;&nbsp;<span class="str">"Input"</span>, <span class="str">"How old are you?"</span>)</span></div>
+          <div class="line"><span class="ln">10</span><span>&nbsp;</span></div>
+          <div class="line"><span class="ln">11</span><span><span class="cm"># Practical: validate before saving</span></span></div>
+          <div class="line"><span class="ln">12</span><span><span class="kw">def</span> <span class="fn">save</span>():</span></div>
+          <div class="line"><span class="ln">13</span><span>&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">if not</span> entry.get():</span></div>
+          <div class="line hl-pk"><span class="ln">14</span><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;messagebox.showwarning(</span></div>
+          <div class="line hl-pk"><span class="ln">15</span><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="str">"Empty"</span>, <span class="str">"Please fill the field!"</span>)</span></div>
+          <div class="line"><span class="ln">16</span><span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">return</span></span></div>
+          <div class="line hl-gr"><span class="ln">17</span><span>&nbsp;&nbsp;&nbsp;&nbsp;messagebox.showinfo(<span class="str">"Saved"</span>, <span class="str">"✅ Done!"</span>)</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ SLIDE 10 — SUMMARY ══ -->
+  <div class="slide" data-slide="9">
+    <div class="glow-circle"></div>
+    <div class="slide-header"><span class="slide-num sn-tk">09</span><span class="slide-topic">Summary</span></div>
+    <h2 class="stitle" style="text-align:center;margin-bottom:8px">Lesson <span class="htk">Summary</span></h2>
+    <p class="sdesc" style="text-align:center;margin-bottom:20px">Everything you need to build your first Tkinter app</p>
+    <div class="sum6">
+      <div class="scard" style="border-top-color:var(--tk)">
+        <div class="scard-kw" style="color:var(--tk)">tk.Tk()</div>
+        <div class="scard-desc">Creates the main window. Set title with <code style="font-family:'JetBrains Mono'">window.title()</code> and size with <code style="font-family:'JetBrains Mono'">window.geometry("400x300")</code>.</div>
+      </div>
+      <div class="scard" style="border-top-color:var(--green)">
+        <div class="scard-kw" style="color:var(--green)">Widgets</div>
+        <div class="scard-desc">Label, Button, Entry, Text, Checkbutton, Listbox, Frame. Create with <code style="font-family:'JetBrains Mono'">tk.WidgetName(parent, ...)</code>.</div>
+      </div>
+      <div class="scard" style="border-top-color:var(--pink)">
+        <div class="scard-kw" style="color:var(--pink)">Entry</div>
+        <div class="scard-desc">Text input box. <code style="font-family:'JetBrains Mono'">.get()</code> reads it, <code style="font-family:'JetBrains Mono'">.delete()</code> clears it, <code style="font-family:'JetBrains Mono'">.insert()</code> fills it.</div>
+      </div>
+      <div class="scard" style="border-top-color:var(--teal)">
+        <div class="scard-kw" style="color:var(--teal)">Layouts</div>
+        <div class="scard-desc"><code style="font-family:'JetBrains Mono'">pack()</code> for simple stacks. <code style="font-family:'JetBrains Mono'">grid(row, column)</code> for forms. <code style="font-family:'JetBrains Mono'">place(x, y)</code> for exact position.</div>
+      </div>
+      <div class="scard" style="border-top-color:var(--yellow)">
+        <div class="scard-kw" style="color:var(--yellow)">Events</div>
+        <div class="scard-desc"><code style="font-family:'JetBrains Mono'">command=</code> on buttons. <code style="font-family:'JetBrains Mono'">bind("&lt;event&gt;", handler)</code> for keyboard / mouse events.</div>
+      </div>
+      <div class="scard" style="border-top-color:var(--tk)">
+        <div class="scard-kw" style="color:var(--tk)">mainloop()</div>
+        <div class="scard-desc">Always the last line. Keeps the window alive and listens for events. Without it, the window closes immediately.</div>
+      </div>
+    </div>
+    <div class="codeblock sm" style="margin-top:16px">
+      <div class="line"><span class="ln">1</span><span><span class="kw">import</span> tkinter <span class="kw">as</span> tk            <span class="cm"># import</span></span></div>
+      <div class="line"><span class="ln">2</span><span>win <span class="op">=</span> tk.<span class="cls">Tk</span>(); win.title(<span class="str">"App"</span>)  <span class="cm"># window</span></span></div>
+      <div class="line"><span class="ln">3</span><span>tk.<span class="cls">Label</span>(win, text<span class="op">=</span><span class="str">"Hello"</span>).pack()  <span class="cm"># widget</span></span></div>
+      <div class="line"><span class="ln">4</span><span>tk.<span class="cls">Button</span>(win, text<span class="op">=</span><span class="str">"OK"</span>, command<span class="op">=</span>win.quit).pack()  <span class="cm"># event</span></span></div>
+      <div class="line"><span class="ln">5</span><span>win.mainloop()                  <span class="cm"># run ← always last!</span></span></div>
+    </div>
+  </div>
+
+</div>
+
+<div class="ui-bar">
+  <button onclick="go(-1)">←</button>
+  <div class="progress-dots" id="dots"></div>
+  <span class="counter" id="counter">1 / 10</span>
+  <button onclick="go(1)">→</button>
+</div>
+
+<script>
+  const slides = document.querySelectorAll('.slide');
+  const dotsEl = document.getElementById('dots');
+  const counterEl = document.getElementById('counter');
+  let cur = 0;
+
+  slides.forEach((_, i) => {
+    const d = document.createElement('div');
+    d.className = 'dot' + (i === 0 ? ' active' : '');
+    d.onclick = () => goTo(i);
+    dotsEl.appendChild(d);
+  });
+
+  function goTo(n) {
+    slides[cur].classList.remove('active');
+    slides[cur].classList.add('out');
+    setTimeout(() => slides[cur].classList.remove('out'), 450);
+    cur = (n + slides.length) % slides.length;
+    slides[cur].classList.add('active');
+    document.querySelectorAll('.dot').forEach((d, i) => d.classList.toggle('active', i === cur));
+    counterEl.textContent = (cur + 1) + ' / ' + slides.length;
+  }
+
+  function go(dir) { goTo(cur + dir); }
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') { e.preventDefault(); go(1); }
+    if (e.key === 'ArrowLeft'  || e.key === 'ArrowUp') { e.preventDefault(); go(-1); }
+  });
+</script>
+</body>
+</html>
